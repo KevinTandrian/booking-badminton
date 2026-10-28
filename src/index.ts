@@ -1,6 +1,8 @@
 import "dotenv/config";
 import express from "express";
 import { pool } from "./config/db";
+import authRoutes from "./routes/authRoutes";
+import courtRoutes from "./routes/courtRoutes";
 
 const app = express();
 app.use(express.json());
@@ -20,4 +22,6 @@ app.get("/health/db", async (_req, res) => {
 });
 
 const port = process.env.PORT || 3000;
+app.use("/auth", authRoutes);
+app.use("/courts", courtRoutes);
 app.listen(port, () => console.log(`Server jalan di port ${port}`));
