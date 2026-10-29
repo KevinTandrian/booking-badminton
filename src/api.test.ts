@@ -259,3 +259,18 @@ describe("keamanan", () => {
         expect(res.headers["access-control-allow-origin"]).toBeUndefined();
     });
 });
+describe("penanganan error", () => {
+    it("endpoint yang tidak ada mengembalikan 404 berformat JSON", async () => {
+        const res = await request(app).get("/tidak-ada");
+        expect(res.status).toBe(404);
+        expect(res.body.message).toBeDefined();
+    });
+
+    it("JSON yang rusak mengembalikan 400", async () => {
+        const res = await request(app)
+            .post("/auth/login")
+            .set("Content-Type", "application/json")
+            .send("{bukan json");
+        expect(res.status).toBe(400);
+    });
+});

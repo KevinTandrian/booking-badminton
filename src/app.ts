@@ -7,6 +7,8 @@ import { pool } from "./config/db";
 import authRoutes from "./routes/authRoutes";
 import courtRoutes from "./routes/courtRoutes";
 import bookingRoutes from "./routes/bookingRoutes";
+import morgan from "morgan";
+import { notFound, errorHandler } from "./middlewares/errorHandler";
 
 export const app = express();
 
@@ -26,6 +28,7 @@ const authLimiter = rateLimit({
 });
 
 app.use(helmet());
+app.use(morgan("tiny", { skip: () => process.env.NODE_ENV === "test" }));
 app.use(cors({ origin: allowedOrigins }));
 app.use(express.json({ limit: "10kb" }));
 
@@ -46,3 +49,5 @@ app.get("/health/db", async (_req, res) => {
 app.use("/auth", authLimiter, authRoutes);
 app.use("/courts", courtRoutes);
 app.use("/bookings", bookingRoutes);
+app.use(notFound);
+app.use(errorHandler);
