@@ -45,6 +45,28 @@ EXCLUDE USING gist (
 
 Database menolak dua booking aktif yang waktunya tumpang tindih di lapangan yang sama, dan API mengubahnya menjadi respons `409 Conflict`. Booking yang dibatalkan tidak dihitung, jadi slotnya bisa dipesan ulang. Ada test otomatis yang mengirim 5 permintaan serentak ke slot yang sama: hanya satu yang berhasil.
 
+## Contoh penggunaan
+
+Booking pertama berhasil:
+
+```bash
+curl -X POST http://localhost:3001/bookings \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"court_id":1,"start_time":"2026-11-05T18:00:00+08:00","end_time":"2026-11-05T19:00:00+08:00"}'
+```
+Respons `201 Created`:
+```json
+{"id":1,"user_id":1,"court_id":1,"status":"confirmed", ...}
+```
+
+Mengulang request yang sama ditolak oleh database:
+
+Respons `409 Conflict`:
+```json
+{"message":"Slot waktu tersebut sudah dipesan"}
+```
+
 ## Pengujian
 
 ```bash
