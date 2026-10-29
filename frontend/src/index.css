@@ -136,3 +136,34 @@ form li {
     padding: 1rem;
   }
 }
+
+.booking {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.badge.confirmed {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--accent);
+}
+
+.badge.cancelled {
+  background: rgba(148, 163, 184, 0.15);
+  color: var(--muted);
+}

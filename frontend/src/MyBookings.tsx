@@ -53,11 +53,21 @@ export default function MyBookings({
             ) : (
                 <ul>
                     {items.map((b) => (
-                        <li key={b.id} style={{ marginBottom: 8 }}>
-                            {b.court_name}, {fmt(b.start_time)} - {fmt(b.end_time)} ({b.status}){" "}
-                            {b.status === "confirmed" && (
-                                <button onClick={() => cancel(b.id)}>Batalkan</button>
-                            )}
+                        <li key={b.id} className="booking">
+                            <div>
+                                <strong>{b.court_name}</strong>
+                                <div className="muted">
+                                    {fmt(b.start_time)} - {fmt(b.end_time)}
+                                </div>
+                            </div>
+                            <div>
+                                <span className={`badge ${b.status}`}>
+                                    {b.status === "confirmed" ? "Terkonfirmasi" : "Dibatalkan"}
+                                </span>{" "}
+                                {b.status === "confirmed" && (
+                                    <button onClick={() => cancel(b.id)}>Batalkan</button>
+                                )}
+                            </div>
                         </li>
                     ))}
                 </ul>
