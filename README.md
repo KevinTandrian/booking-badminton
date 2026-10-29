@@ -57,7 +57,7 @@ curl -X POST http://localhost:3001/bookings \
 ```
 Respons `201 Created`:
 ```json
-{"id":1,"user_id":1,"court_id":1,"status":"confirmed", ...}
+{"id":1,"user_id":1,"court_id":1,"st    atus":"confirmed", ...}
 ```
 
 Mengulang request yang sama ditolak oleh database:
@@ -77,6 +77,11 @@ Test memakai database terpisah (`booking_test`) dan berjalan otomatis di GitHub 
 
 ## Rencana berikutnya
 
-- Frontend React
 - Pembayaran (Midtrans sandbox)
 - Notifikasi email
+
+## Tampilan
+
+![Form booking](docs/booking.png)
+![Slot bentrok ditolak](docs/bentrok.png)
+![Panel admin](docs/admin.png)
