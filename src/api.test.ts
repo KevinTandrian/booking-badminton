@@ -274,3 +274,11 @@ describe("penanganan error", () => {
         expect(res.status).toBe(400);
     });
 });
+describe("dokumentasi", () => {
+    it("spesifikasi OpenAPI tersedia", async () => {
+        const res = await request(app).get("/openapi.json");
+        expect(res.status).toBe(200);
+        expect(res.body.openapi).toBeDefined();
+        expect(res.body.paths["/bookings"]).toBeDefined();
+    });
+});

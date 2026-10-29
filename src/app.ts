@@ -2,13 +2,15 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import morgan from "morgan";
+import swaggerUi from "swagger-ui-express";
 import { rateLimit } from "express-rate-limit";
 import { pool } from "./config/db";
 import authRoutes from "./routes/authRoutes";
 import courtRoutes from "./routes/courtRoutes";
 import bookingRoutes from "./routes/bookingRoutes";
-import morgan from "morgan";
 import { notFound, errorHandler } from "./middlewares/errorHandler";
+import { openapi } from "./openapi";
 
 export const app = express();
 
@@ -46,8 +48,14 @@ app.get("/health/db", async (_req, res) => {
     }
 });
 
+app.get("/openapi.json", (_req, res) => {
+    res.json(openapi);
+});
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapi));
+
 app.use("/auth", authLimiter, authRoutes);
 app.use("/courts", courtRoutes);
 app.use("/bookings", bookingRoutes);
+
 app.use(notFound);
 app.use(errorHandler);
