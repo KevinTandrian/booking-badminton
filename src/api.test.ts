@@ -243,3 +243,19 @@ describe("bookings: validasi dan hak akses", () => {
         expect(res.status).toBe(400);
     });
 });
+describe("keamanan", () => {
+    it("tidak membocorkan header X-Powered-By", async () => {
+        const res = await request(app).get("/health");
+        expect(res.headers["x-powered-by"]).toBeUndefined();
+    });
+
+    it("mengizinkan CORS dari alamat frontend", async () => {
+        const res = await request(app).get("/health").set("Origin", "http://localhost:5173");
+        expect(res.headers["access-control-allow-origin"]).toBe("http://localhost:5173");
+    });
+
+    it("tidak mengizinkan CORS dari situs lain", async () => {
+        const res = await request(app).get("/health").set("Origin", "http://situs-jahat.example");
+        expect(res.headers["access-control-allow-origin"]).toBeUndefined();
+    });
+});

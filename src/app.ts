@@ -1,14 +1,33 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import helmet from "helmet";
+import { rateLimit } from "express-rate-limit";
 import { pool } from "./config/db";
 import authRoutes from "./routes/authRoutes";
 import courtRoutes from "./routes/courtRoutes";
 import bookingRoutes from "./routes/bookingRoutes";
 
 export const app = express();
-app.use(cors());
-app.use(express.json());
+
+const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:5173")
+    .split(",")
+    .map((o) => o.trim());
+
+// Maksimal 20 permintaan ke /auth per 15 menit per alamat IP.
+// Dilewati saat test supaya tes yang banyak login tidak ikut terblokir.
+const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 20,
+    standardHeaders: "draft-7",
+    legacyHeaders: false,
+    message: { message: "Terlalu banyak percobaan, coba lagi dalam beberapa menit" },
+    skip: () => process.env.NODE_ENV === "test",
+});
+
+app.use(helmet());
+app.use(cors({ origin: allowedOrigins }));
+app.use(express.json({ limit: "10kb" }));
 
 app.get("/health", (_req, res) => {
     res.json({ status: "ok" });
@@ -24,6 +43,6 @@ app.get("/health/db", async (_req, res) => {
     }
 });
 
-app.use("/auth", authRoutes);
+app.use("/auth", authLimiter, authRoutes);
 app.use("/courts", courtRoutes);
 app.use("/bookings", bookingRoutes);
