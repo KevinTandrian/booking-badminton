@@ -48,6 +48,11 @@ export default function BookingForm({
             .catch((e) => setError(e.message));
     }, [selectedId, date, refreshKey]);
 
+    useEffect(() => {
+        setError("");
+        setMessage("");
+    }, [selectedId, date, hour, duration]);
+
     async function submit(e: FormEvent) {
         e.preventDefault();
         if (!selectedId) return;
