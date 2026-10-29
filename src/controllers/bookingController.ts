@@ -7,14 +7,6 @@ export async function createBooking(req: AuthRequest, res: Response) {
     const start = new Date(start_time);
     const end = new Date(end_time);
 
-    if (!Number.isInteger(court_id) || isNaN(start.getTime()) || isNaN(end.getTime())) {
-        res.status(400).json({ message: "court_id, start_time, dan end_time wajib diisi dengan benar" });
-        return;
-    }
-    if (end <= start) {
-        res.status(400).json({ message: "end_time harus setelah start_time" });
-        return;
-    }
     if (start <= new Date()) {
         res.status(400).json({ message: "Waktu mulai harus di masa depan" });
         return;

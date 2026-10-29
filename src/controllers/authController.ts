@@ -6,11 +6,6 @@ import { pool } from "../config/db";
 export async function register(req: Request, res: Response) {
     const { name, email, password } = req.body;
 
-    if (!name || !email || !password || password.length < 8) {
-        res.status(400).json({ message: "Nama, email, dan password (min. 8 karakter) wajib diisi" });
-        return;
-    }
-
     try {
         const hash = await bcrypt.hash(password, 10);
         const result = await pool.query(
@@ -30,11 +25,6 @@ export async function register(req: Request, res: Response) {
 
 export async function login(req: Request, res: Response) {
     const { email, password } = req.body;
-
-    if (!email || !password) {
-        res.status(400).json({ message: "Email dan password wajib diisi" });
-        return;
-    }
 
     try {
         const result = await pool.query("SELECT * FROM users WHERE email = $1", [email]);

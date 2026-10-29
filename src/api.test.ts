@@ -91,6 +91,27 @@ describe("auth", () => {
             .send({ email: "tidakada@test.com", password: "rahasia123" });
         expect(res.status).toBe(401);
     });
+
+    it("menolak format email tidak valid (400)", async () => {
+        const res = await request(app)
+            .post("/auth/register")
+            .send({ name: "Eko", email: "bukan-email", password: "rahasia123" });
+        expect(res.status).toBe(400);
+    });
+
+    it("menolak registrasi tanpa nama (400)", async () => {
+        const res = await request(app)
+            .post("/auth/register")
+            .send({ email: "fani@test.com", password: "rahasia123" });
+        expect(res.status).toBe(400);
+    });
+
+    it("email tidak membedakan huruf besar-kecil", async () => {
+        const res = await request(app)
+            .post("/auth/login")
+            .send({ email: "ALICE@test.com", password: "rahasia123" });
+        expect(res.status).toBe(200);
+    });
 });
 
 describe("courts", () => {
@@ -214,5 +235,11 @@ describe("bookings: validasi dan hak akses", () => {
             .patch(`/bookings/${created.body.id}/cancel`)
             .set("Authorization", `Bearer ${alice}`);
         expect(again.status).toBe(404);
+    });
+
+    it("menolak end_time sebelum start_time (400)", async () => {
+        const s = slot(6);
+        const res = await bookAs(alice, s.end, s.start);
+        expect(res.status).toBe(400);
     });
 });

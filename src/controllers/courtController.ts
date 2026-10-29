@@ -15,10 +15,6 @@ export async function listCourts(_req: Request, res: Response) {
 
 export async function createCourt(req: Request, res: Response) {
     const { name, price_per_hour } = req.body;
-    if (!name || !Number.isInteger(price_per_hour) || price_per_hour <= 0) {
-        res.status(400).json({ message: "Nama dan price_per_hour (angka bulat > 0) wajib diisi" });
-        return;
-    }
     try {
         const result = await pool.query(
             "INSERT INTO courts (name, price_per_hour) VALUES ($1, $2) RETURNING *",
