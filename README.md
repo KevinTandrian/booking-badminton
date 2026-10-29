@@ -85,3 +85,6 @@ Test memakai database terpisah (`booking_test`) dan berjalan otomatis di GitHub 
 ![Form booking](docs/booking.png)
 ![Slot bentrok ditolak](docs/bentrok.png)
 ![Panel admin](docs/admin.png)
+![Dokumentasi Swagger](docs/swagger.png)
+![Slot bentrok ditolak (409)](docs/bentrok1.png)
+![Frontend](docs/frontend.png)
