@@ -27,54 +27,89 @@ export default function AuthForm({ onLogin }: { onLogin: () => void }) {
             localStorage.setItem("token", token);
             onLogin();
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Terjadi kesalahan");
+            setError(err instanceof Error ? err.message : "Terjadi kesalahan saat otentikasi");
         } finally {
             setLoading(false);
         }
     }
 
-    const input = { display: "block", width: "100%", padding: 8, marginBottom: 8 };
-
     return (
-        <form onSubmit={submit} style={{ marginBottom: "2rem" }}>
-            <h2>{mode === "login" ? "Masuk" : "Daftar"}</h2>
-            {mode === "register" && (
-                <input
-                    style={input}
-                    placeholder="Nama"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                />
-            )}
-            <input
-                style={input}
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-            />
-            <input
-                style={input}
-                type="password"
-                placeholder="Password (min. 8 karakter)"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={8}
-            />
-            {error && <p style={{ color: "#f87171" }}>{error}</p>}
-            <button type="submit" disabled={loading}>
-                {loading ? "Memproses..." : mode === "login" ? "Masuk" : "Daftar"}
-            </button>
-            <button
-                type="button"
-                style={{ marginLeft: 8 }}
-                onClick={() => setMode(mode === "login" ? "register" : "login")}
-            >
-                {mode === "login" ? "Belum punya akun?" : "Sudah punya akun?"}
-            </button>
-        </form>
+        <div className="card" style={{ maxWidth: 440, margin: "0 auto 2.5rem" }}>
+            {/* Tabs Navigasi Masuk / Daftar */}
+            <div className="nav-tabs" style={{ marginBottom: "1.25rem" }}>
+                <button
+                    type="button"
+                    className={`tab-btn ${mode === "login" ? "active" : ""}`}
+                    onClick={() => {
+                        setMode("login");
+                        setError("");
+                    }}
+                >
+                    Masuk
+                </button>
+                <button
+                    type="button"
+                    className={`tab-btn ${mode === "register" ? "active" : ""}`}
+                    onClick={() => {
+                        setMode("register");
+                        setError("");
+                    }}
+                >
+                    Daftar Akun Baru
+                </button>
+            </div>
+
+            <form onSubmit={submit}>
+                {mode === "register" && (
+                    <div className="form-group">
+                        <label className="form-label">Nama Lengkap</label>
+                        <input
+                            placeholder="Contoh: Budi Santoso"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            required
+                        />
+                    </div>
+                )}
+
+                <div className="form-group">
+                    <label className="form-label">Alamat Email</label>
+                    <input
+                        type="email"
+                        placeholder="nama@email.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
+                </div>
+
+                <div className="form-group">
+                    <label className="form-label">Password</label>
+                    <input
+                        type="password"
+                        placeholder="Minimal 8 karakter"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        minLength={8}
+                    />
+                </div>
+
+                {error && (
+                    <div className="alert alert-danger">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        </svg>
+                        <span>{error}</span>
+                    </div>
+                )}
+
+                <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+                    {loading ? "Memproses..." : mode === "login" ? "Masuk ke Akun" : "Daftar Sekarang"}
+                </button>
+            </form>
+        </div>
     );
 }
