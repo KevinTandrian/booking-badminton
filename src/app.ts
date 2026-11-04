@@ -12,7 +12,9 @@ import bookingRoutes from "./routes/bookingRoutes";
 import { notFound, errorHandler } from "./middlewares/errorHandler";
 import { openapi } from "./openapi";
 
+
 export const app = express();
+app.set("trust proxy", 1);
 
 const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:5173")
     .split(",")
