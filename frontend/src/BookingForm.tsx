@@ -19,10 +19,14 @@ export default function BookingForm({
     courts,
     refreshKey,
     onBooked,
+    isLoggedIn,
+    onRequestLogin,
 }: {
     courts: Court[];
     refreshKey: number;
     onBooked: () => void;
+    isLoggedIn: boolean;
+    onRequestLogin: () => void;
 }) {
     const [courtId, setCourtId] = useState<number | null>(null);
     const [date, setDate] = useState(getDateString(0));
@@ -48,7 +52,6 @@ export default function BookingForm({
             .catch((e) => setError(e.message));
     }, [selectedId, date, refreshKey]);
 
-    // Reset notifikasi jika input berubah
     useEffect(() => {
         setError("");
         setMessage("");
@@ -77,12 +80,18 @@ export default function BookingForm({
         isHourBooked(h)
     );
 
-    // Jam selesai
     const endHour = hour + duration;
     const isPastClosing = endHour > 22;
 
     async function submit(e: FormEvent) {
         e.preventDefault();
+
+        // Jika user belum login, buka modal login agar mereka bisa masuk terlebih dahulu
+        if (!isLoggedIn) {
+            onRequestLogin();
+            return;
+        }
+
         if (!selectedId) return;
 
         if (hasCollision) {
@@ -122,30 +131,31 @@ export default function BookingForm({
     if (courts.length === 0) {
         return (
             <div className="card">
-                <p style={{ color: "var(--text-muted)" }}>Belum ada lapangan aktif yang tersedia.</p>
+                <p style={{ color: "var(--text-muted)", textAlign: "center" }}>Sedang memuat data lapangan...</p>
             </div>
         );
     }
 
     const today = getDateString(0);
     const tomorrow = getDateString(1);
+    const dayAfter = getDateString(2);
 
     return (
         <div className="card">
             <h2 className="card-title">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                     <line x1="16" y1="2" x2="16" y2="6"></line>
                     <line x1="8" y1="2" x2="8" y2="6"></line>
                     <line x1="3" y1="10" x2="21" y2="10"></line>
                 </svg>
-                Pesan Lapangan
+                Pilih Jadwal & Pesan Lapangan
             </h2>
 
             <form onSubmit={submit}>
-                {/* Pemilihan Lapangan */}
+                {/* Langkah 1: Pilih Lapangan */}
                 <div className="form-group">
-                    <label className="form-label">Pilih Lapangan</label>
+                    <label className="form-label">Langkah 1: Pilih Lapangan</label>
                     <div className="court-grid">
                         {courts.map((c) => {
                             const isSelected = c.id === selectedId;
@@ -155,14 +165,19 @@ export default function BookingForm({
                                     className={`court-card ${isSelected ? "selected" : ""}`}
                                     onClick={() => setCourtId(c.id)}
                                 >
-                                    <div className="court-name">
-                                        <span>{c.name}</span>
+                                    <div className="court-header">
+                                        <div className="court-name">{c.name}</div>
                                         {isSelected && (
-                                            <span style={{ color: "var(--accent)", fontSize: "0.8rem" }}>✓ Dipilih</span>
+                                            <span className="court-badge-selected">✓ Dipilih</span>
                                         )}
                                     </div>
                                     <div className="court-price">
-                                        Rp {c.price_per_hour.toLocaleString("id-ID")} <span style={{ fontSize: "0.75rem", color: "var(--text-dim)" }}>/ jam</span>
+                                        Rp {c.price_per_hour.toLocaleString("id-ID")} <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: "normal" }}>/ jam</span>
+                                    </div>
+                                    <div className="court-meta">
+                                        <span>🏸 Karpet Standar PBSI</span>
+                                        <span>•</span>
+                                        <span>💡 Lampu LED</span>
                                     </div>
                                 </div>
                             );
@@ -170,10 +185,10 @@ export default function BookingForm({
                     </div>
                 </div>
 
-                {/* Pemilihan Tanggal & Durasi */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
+                {/* Langkah 2: Pilih Tanggal & Durasi */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.25rem", marginBottom: "0.5rem" }}>
                     <div className="form-group">
-                        <label className="form-label">Tanggal Main</label>
+                        <label className="form-label">Langkah 2: Tanggal Main</label>
                         <input
                             type="date"
                             min={today}
@@ -196,6 +211,13 @@ export default function BookingForm({
                             >
                                 Besok
                             </button>
+                            <button
+                                type="button"
+                                className={`btn-chip ${date === dayAfter ? "active" : ""}`}
+                                onClick={() => setDate(dayAfter)}
+                            >
+                                Lusa
+                            </button>
                         </div>
                     </div>
 
@@ -206,30 +228,36 @@ export default function BookingForm({
                             <option value={2}>2 Jam</option>
                             <option value={3}>3 Jam</option>
                         </select>
-                        <div style={{ fontSize: "0.8rem", color: "var(--text-dim)", marginTop: "0.4rem" }}>
-                            Selesai: pukul {String(endHour).padStart(2, "0")}:00
+                        <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: "0.45rem" }}>
+                            Selesai main: pukul <strong>{String(endHour).padStart(2, "0")}:00</strong>
                         </div>
                     </div>
                 </div>
 
-                {/* Visual Time-Slot Grid */}
+                {/* Langkah 3: Visual Time-Slot Grid */}
                 <div className="slots-container">
                     <div className="slot-grid-header">
-                        <label className="form-label" style={{ margin: 0 }}>
-                            Pilih Jam Mulai (07:00 - 22:00)
-                        </label>
+                        <div>
+                            <label className="form-label" style={{ margin: 0, fontSize: "0.95rem" }}>
+                                Langkah 3: Pilih Jam Mulai Main
+                            </label>
+                            <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+                                Klik kotak jam yang masih kosong untuk memilih
+                            </div>
+                        </div>
+
                         <div className="slot-legend">
                             <div className="legend-item">
-                                <span className="legend-dot available"></span>
+                                <span className="legend-box available"></span>
                                 <span>Tersedia</span>
                             </div>
                             <div className="legend-item">
-                                <span className="legend-dot selected"></span>
-                                <span>Terpilih</span>
+                                <span className="legend-box selected"></span>
+                                <span>Pilihan Anda</span>
                             </div>
                             <div className="legend-item">
-                                <span className="legend-dot booked"></span>
-                                <span>Terisi</span>
+                                <span className="legend-box booked"></span>
+                                <span>Sudah Terisi</span>
                             </div>
                         </div>
                     </div>
@@ -256,11 +284,11 @@ export default function BookingForm({
                                     disabled={booked}
                                     className={`slot-button ${stateClass}`}
                                     onClick={() => setHour(h)}
-                                    title={booked ? "Slot sudah dipesan" : `Pilih jam ${String(h).padStart(2, "0")}:00`}
+                                    title={booked ? "Slot jam ini sudah dipesan" : `Pilih main jam ${String(h).padStart(2, "0")}:00`}
                                 >
                                     <span className="slot-time">{String(h).padStart(2, "0")}:00</span>
                                     <span className="slot-status">
-                                        {booked ? "Penuh" : selected ? "Mulai" : inRange ? "Dalam Durasi" : "Kosong"}
+                                        {booked ? "Terisi" : selected ? "Mulai" : inRange ? "Dalam Durasi" : "Kosong"}
                                     </span>
                                 </button>
                             );
@@ -268,15 +296,17 @@ export default function BookingForm({
                     </div>
                 </div>
 
-                {/* Notifikasi Error & Sukses */}
+                {/* Notifikasi Error & Bentrok */}
                 {hasCollision && (
                     <div className="alert alert-danger">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <circle cx="12" cy="12" r="10"></circle>
                             <line x1="12" y1="8" x2="12" y2="12"></line>
                             <line x1="12" y1="16" x2="12.01" y2="16"></line>
                         </svg>
-                        <span>Slot bentrok! Ada jam yang sudah terisi di antara jam {String(hour).padStart(2, "0")}:00 - {String(endHour).padStart(2, "0")}:00.</span>
+                        <span>
+                            <strong>Slot Bentrok!</strong> Ada jam yang sudah terisi antara pukul {String(hour).padStart(2, "0")}:00 s/d {String(endHour).padStart(2, "0")}:00. Silakan pilih jam lain.
+                        </span>
                     </div>
                 )}
 
@@ -294,7 +324,7 @@ export default function BookingForm({
 
                 {message && (
                     <div className="alert alert-success">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
                             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                             <polyline points="22 4 12 14.01 9 11.01"></polyline>
                         </svg>
@@ -302,14 +332,16 @@ export default function BookingForm({
                     </div>
                 )}
 
-                {/* Ringkasan & Submit */}
+                {/* Ringkasan Pesanan & Tombol Aksi */}
                 <div className="summary-box">
                     <div className="summary-details">
-                        <div style={{ color: "var(--text-muted)", fontSize: "0.8rem", textTransform: "uppercase" }}>Ringkasan Pesanan</div>
-                        <strong>{selectedCourt?.name}</strong> • {date} ({String(hour).padStart(2, "0")}:00 - {String(endHour).padStart(2, "0")}:00, {duration} jam)
+                        <div style={{ color: "var(--text-muted)", fontSize: "0.8rem", textTransform: "uppercase", fontWeight: 700 }}>
+                            Ringkasan Jadwal Pesanan
+                        </div>
+                        <strong>{selectedCourt?.name}</strong> • {date} (Pukul {String(hour).padStart(2, "0")}:00 - {String(endHour).padStart(2, "0")}:00, {duration} jam)
                     </div>
                     <div style={{ textAlign: "right" }}>
-                        <div style={{ color: "var(--text-muted)", fontSize: "0.8rem" }}>Total Pembayaran</div>
+                        <div style={{ color: "var(--text-muted)", fontSize: "0.8rem", fontWeight: 600 }}>Total Tarif</div>
                         <div className="summary-price">
                             Rp {((selectedCourt?.price_per_hour ?? 0) * duration).toLocaleString("id-ID")}
                         </div>
@@ -322,8 +354,17 @@ export default function BookingForm({
                         className="btn btn-primary btn-block"
                         disabled={loading || hasCollision || isPastClosing}
                     >
-                        {loading ? "Memproses Pemesanan..." : "Pesan Sekarang"}
+                        {loading
+                            ? "Memproses Pemesanan..."
+                            : isLoggedIn
+                            ? "Konfirmasi & Pesan Lapangan Sekarang"
+                            : "Pesan Sekarang (Masuk untuk Menyelesaikan)"}
                     </button>
+                    {!isLoggedIn && (
+                        <p style={{ textAlign: "center", fontSize: "0.85rem", color: "var(--text-muted)", marginTop: "0.6rem" }}>
+                            Belum punya akun? Anda bisa daftar gratis hanya dalam hitungan detik.
+                        </p>
+                    )}
                 </div>
             </form>
         </div>

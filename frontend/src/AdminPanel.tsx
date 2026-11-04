@@ -88,10 +88,10 @@ export default function AdminPanel({
     }
 
     return (
-        <div className="card" style={{ border: "1px solid rgba(245, 158, 11, 0.3)" }}>
+        <div className="card" style={{ border: "1.5px solid #fde68a" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem", flexWrap: "wrap", gap: "0.5rem" }}>
                 <h2 className="card-title" style={{ margin: 0 }}>
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="12" cy="12" r="3"></circle>
                         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                     </svg>
@@ -113,15 +113,15 @@ export default function AdminPanel({
             )}
 
             {/* Form Tambah Lapangan */}
-            <form onSubmit={add} style={{ background: "var(--field)", padding: "1.25rem", borderRadius: "12px", border: "1px solid var(--border)", marginBottom: "1.5rem" }}>
-                <div style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.75rem", color: "#fff" }}>
-                    Tambah Lapangan Baru
+            <form onSubmit={add} style={{ background: "#f8fafc", padding: "1.25rem", borderRadius: "12px", border: "1px solid var(--border)", marginBottom: "1.5rem" }}>
+                <div style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "0.85rem", color: "#0f172a" }}>
+                    + Tambah Lapangan Baru
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "0.75rem", marginBottom: "0.75rem" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "0.85rem", marginBottom: "0.85rem" }}>
                     <div>
                         <label className="form-label">Nama Lapangan</label>
                         <input
-                            placeholder="Contoh: Lapangan A (Vinyl)"
+                            placeholder="Contoh: Lapangan A (Vinyl PBSI)"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required
@@ -139,29 +139,29 @@ export default function AdminPanel({
                     </div>
                 </div>
                 <button type="submit" className="btn btn-primary" disabled={loading}>
-                    {loading ? "Menyimpan..." : "+ Tambah Lapangan"}
+                    {loading ? "Menyimpan..." : "Simpan Lapangan Baru"}
                 </button>
             </form>
 
             {/* Daftar Lapangan */}
-            <div style={{ fontSize: "0.95rem", fontWeight: 700, marginBottom: "0.75rem", color: "var(--text-muted)" }}>
+            <div style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "0.75rem", color: "#334155" }}>
                 Daftar Lapangan Aktif ({courts.length})
             </div>
 
             {courts.length === 0 ? (
-                <p style={{ color: "var(--text-dim)" }}>Belum ada lapangan.</p>
+                <p style={{ color: "var(--text-muted)" }}>Belum ada lapangan yang terdaftar.</p>
             ) : (
                 courts.map((c) => (
                     <div key={c.id} className="admin-court-item">
                         {editing?.id === c.id ? (
                             <div style={{ display: "flex", gap: "0.5rem", flex: 1, flexWrap: "wrap" }}>
                                 <input
-                                    style={{ flex: 1, minWidth: 140 }}
+                                    style={{ flex: 1, minWidth: 160 }}
                                     value={editing.name}
                                     onChange={(e) => setEditing({ ...editing, name: e.target.value })}
                                 />
                                 <input
-                                    style={{ width: 130 }}
+                                    style={{ width: 140 }}
                                     inputMode="numeric"
                                     value={editing.price}
                                     onChange={(e) => setEditing({ ...editing, price: e.target.value })}
@@ -175,17 +175,17 @@ export default function AdminPanel({
                             </div>
                         ) : (
                             <>
-                                <div className="admin-court-info">
-                                    <strong style={{ color: "#fff", fontSize: "1rem" }}>{c.name}</strong>
-                                    <span style={{ color: "var(--accent)", fontSize: "0.9rem" }}>
-                                        Rp {c.price_per_hour.toLocaleString("id-ID")} <span style={{ color: "var(--text-dim)", fontSize: "0.75rem" }}>/ jam</span>
-                                    </span>
+                                <div>
+                                    <strong style={{ color: "#0f172a", fontSize: "1.05rem" }}>{c.name}</strong>
+                                    <div style={{ color: "var(--accent)", fontWeight: 700, fontSize: "0.95rem" }}>
+                                        Rp {c.price_per_hour.toLocaleString("id-ID")} <span style={{ color: "var(--text-muted)", fontSize: "0.8rem", fontWeight: "normal" }}>/ jam</span>
+                                    </div>
                                 </div>
-                                <div className="admin-actions">
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                                     <button
                                         type="button"
                                         className="btn btn-secondary"
-                                        style={{ padding: "0.35rem 0.75rem", fontSize: "0.85rem" }}
+                                        style={{ padding: "0.4rem 0.85rem", fontSize: "0.85rem" }}
                                         onClick={() =>
                                             setEditing({ id: c.id, name: c.name, price: String(c.price_per_hour) })
                                         }

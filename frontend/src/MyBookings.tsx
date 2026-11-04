@@ -60,14 +60,14 @@ export default function MyBookings({
     return (
         <div className="card">
             <h2 className="card-title">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                     <polyline points="14 2 14 8 20 8"></polyline>
                     <line x1="16" y1="13" x2="8" y2="13"></line>
                     <line x1="16" y1="17" x2="8" y2="17"></line>
                     <polyline points="10 9 9 9 8 9"></polyline>
                 </svg>
-                Riwayat Booking Saya
+                Jadwal & Riwayat Booking Saya
             </h2>
 
             {error && (
@@ -77,14 +77,15 @@ export default function MyBookings({
             )}
 
             {items.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "2rem 1rem", color: "var(--text-dim)" }}>
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ margin: "0 auto 0.75rem", display: "block", opacity: 0.5 }}>
+                <div style={{ textAlign: "center", padding: "2.5rem 1rem", color: "var(--text-muted)" }}>
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5" style={{ margin: "0 auto 0.75rem", display: "block" }}>
                         <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                         <line x1="16" y1="2" x2="16" y2="6"></line>
                         <line x1="8" y1="2" x2="8" y2="6"></line>
                         <line x1="3" y1="10" x2="21" y2="10"></line>
                     </svg>
-                    <p>Belum ada riwayat booking.</p>
+                    <p style={{ fontWeight: 600, color: "#334155" }}>Belum ada jadwal booking aktif.</p>
+                    <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Pesanan lapangan Anda akan muncul di halaman ini.</p>
                 </div>
             ) : (
                 <div>
@@ -93,7 +94,7 @@ export default function MyBookings({
                             <div>
                                 <div className="booking-court">{b.court_name}</div>
                                 <div className="booking-time">
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <circle cx="12" cy="12" r="10"></circle>
                                         <polyline points="12 6 12 12 16 14"></polyline>
                                     </svg>

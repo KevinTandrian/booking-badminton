@@ -1,7 +1,13 @@
 import { useState, type FormEvent } from "react";
 import { api } from "./api";
 
-export default function AuthForm({ onLogin }: { onLogin: () => void }) {
+export default function AuthForm({
+    onLogin,
+    subtitle,
+}: {
+    onLogin: () => void;
+    subtitle?: string;
+}) {
     const [mode, setMode] = useState<"login" | "register">("login");
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
@@ -34,8 +40,14 @@ export default function AuthForm({ onLogin }: { onLogin: () => void }) {
     }
 
     return (
-        <div className="card" style={{ maxWidth: 440, margin: "0 auto 2.5rem" }}>
-            {/* Tabs Navigasi Masuk / Daftar */}
+        <div>
+            {subtitle && (
+                <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", color: "#166534", padding: "0.75rem 1rem", borderRadius: "10px", fontSize: "0.85rem", marginBottom: "1.25rem", textAlign: "center" }}>
+                    {subtitle}
+                </div>
+            )}
+
+            {/* Navigasi Tab Masuk / Daftar */}
             <div className="nav-tabs" style={{ marginBottom: "1.25rem" }}>
                 <button
                     type="button"
