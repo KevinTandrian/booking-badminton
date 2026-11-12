@@ -4,6 +4,7 @@ import AuthForm from "./AuthForm";
 import BookingForm from "./BookingForm";
 import MyBookings from "./MyBookings";
 import AdminPanel from "./AdminPanel";
+import heroImage from "./assets/heroimage.jpg";
 
 type Court = { id: number; name: string; price_per_hour: number };
 
@@ -103,25 +104,42 @@ export default function App() {
         </div>
       )}
 
-      {/* Hero Section Bersih & Ramah */}
+      {/* Hero Section Bersih, Modern & Ber-Gambar Landscape */}
       <section className="hero-section">
-        <div className="hero-pill">
-          <span>✨ Buka Setiap Hari: 07:00 - 22:00 WIB</span>
-        </div>
-        <h1>Sewa Lapangan Bulutangkis Jadi Lebih Mudah</h1>
-        <p>
-          Cek ketersediaan jadwal secara langsung, pilih jam main favorit Anda, dan nikmati sistem pemesanan anti-bentrok secara real-time.
-        </p>
+        <div className="hero-text-content">
+          <div className="hero-pill">
+            <span className="pulse-dot"></span>
+            <span>Buka Setiap Hari: 07:00 - 22:00 WIB</span>
+          </div>
+          <h1>Sewa Lapangan Bulutangkis Jadi Lebih Mudah</h1>
+          <p>
+            Cek ketersediaan jadwal secara langsung, pilih jam main favorit Anda, dan nikmati sistem pemesanan anti-bentrok secara real-time.
+          </p>
 
-        <div className="hero-features">
-          <div className="hero-feature-item">
-            <span style={{ color: "var(--accent)" }}>✓</span> Bebas Double Booking
+          <div className="hero-features">
+            <div className="hero-feature-item">
+              <span style={{ color: "var(--accent)" }}>✓</span> Bebas Double Booking
+            </div>
+            <div className="hero-feature-item">
+              <span style={{ color: "var(--accent)" }}>✓</span> Karpet Vinyl PBSI
+            </div>
+            <div className="hero-feature-item">
+              <span style={{ color: "var(--accent)" }}>✓</span> Parkir Luas & Kantin
+            </div>
           </div>
-          <div className="hero-feature-item">
-            <span style={{ color: "var(--accent)" }}>✓</span> Karpet Vinyl Standar PBSI
-          </div>
-          <div className="hero-feature-item">
-            <span style={{ color: "var(--accent)" }}>✓</span> Parkir Luas & Kantin
+        </div>
+
+        {/* Gambar Hero Landscape dari Foto Portrait */}
+        <div className="hero-image-wrapper">
+          <img
+            src={heroImage}
+            alt="Arena Lapangan Bulutangkis SmashPoint"
+            className="hero-image"
+            loading="eager"
+          />
+          <div className="hero-image-badge">
+            <span>🏸 Arena Resmi Standar BWF</span>
+            <span style={{ color: "#4ade80", fontSize: "0.75rem" }}>● Siap Pakai</span>
           </div>
         </div>
       </section>
