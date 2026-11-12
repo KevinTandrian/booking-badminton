@@ -229,6 +229,70 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Modern Footer */}
+      <footer className="app-footer">
+        <div className="footer-grid">
+          <div>
+            <div className="footer-title">
+              <span>🏸</span> SmashPoint Arena
+            </div>
+            <p className="footer-desc">
+              GOR Bulutangkis modern dengan karpet vinyl standar PBSI & BWF. Nikmati kemudahan reservasi online instan, transparan, dan anti double-booking secara real-time.
+            </p>
+            <a
+              href="https://wa.me/6281234567890?text=Halo%20Admin%20SmashPoint%20Arena,%20saya%20ingin%20tanya%20jadwal"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="footer-btn-wa"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.711 2.592 2.654-.697c.983.541 1.871.829 2.806.829h.005c3.182 0 5.767-2.587 5.768-5.766 0-3.18-2.586-5.766-5.773-5.766zm8.81 5.767c-.004 4.867-3.96 8.821-8.82 8.821-1.503 0-2.915-.38-4.148-1.045l-4.57 1.2 1.22-4.457c-.742-1.291-1.171-2.779-1.171-4.364 0-4.867 3.96-8.821 8.82-8.821 4.868 0 8.899 3.954 8.899 8.666z"/>
+              </svg>
+              Chat WhatsApp CS
+            </a>
+          </div>
+
+          <div>
+            <div className="footer-title">
+              <span>⚡</span> Fasilitas Arena
+            </div>
+            <ul className="footer-list">
+              <li><span>🅿️</span> Parkir Luas & Gratis (Mobil/Motor)</li>
+              <li><span>🥤</span> Kantin, Minuman Dingin & Snack</li>
+              <li><span>🚿</span> Ruang Ganti & Kamar Mandi Bersih</li>
+              <li><span>🕌</span> Mushola Nyaman & Ber-AC</li>
+              <li><span>🏸</span> Sewa Raket & Penjualan Shuttlecock</li>
+            </ul>
+          </div>
+
+          <div>
+            <div className="footer-title">
+              <span>📍</span> Lokasi & Operasional
+            </div>
+            <ul className="footer-list">
+              <li><span>🕒</span> <strong>07.00 - 22.00 WIB</strong> (Setiap Hari)</li>
+              <li><span>🏢</span> Jl. Arena Juara No. 88, Sport Center</li>
+              <li><span>📞</span> (021) 555-8899 / WhatsApp CS</li>
+              <li><span>💳</span> Pembayaran: QRIS, GoPay, VA BCA, Mandiri</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="footer-bottom">
+          <div>
+            © {new Date().getFullYear()} <strong>SmashPoint Arena</strong>. Dibuat untuk Portofolio Sistem Reservasi Modern.
+          </div>
+          <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+            <span style={{ fontSize: "0.75rem", background: "#f1f5f9", padding: "0.2rem 0.5rem", borderRadius: "6px", color: "#475569" }}>
+              ⚡ PostgreSQL GiST Anti-Collision
+            </span>
+            <span style={{ fontSize: "0.75rem", background: "#eff6ff", padding: "0.2rem 0.5rem", borderRadius: "6px", color: "var(--accent)", fontWeight: 600 }}>
+              🛡️ Midtrans Secured
+            </span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -159,7 +159,7 @@ export default function MyBookings({
                                             <button
                                                 type="button"
                                                 className="btn btn-secondary"
-                                                style={{ padding: "0.35rem 0.75rem", fontSize: "0.8rem", color: "#166534", borderColor: "#86efac", background: "#f0fdf4", fontWeight: 700 }}
+                                                style={{ padding: "0.35rem 0.75rem", fontSize: "0.8rem", color: "#1d4ed8", borderColor: "#93c5fd", background: "#eff6ff", fontWeight: 700 }}
                                                 onClick={() => setSelectedTicket(b)}
                                             >
                                                 🎫 Lihat E-Ticket

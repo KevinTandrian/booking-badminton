@@ -16,8 +16,12 @@ type BookingResponse = {
     is_simulated?: boolean;
 };
 
-// Jam operasional: 07:00 - 22:00 (slot terakhir 21:00 - 22:00)
-const OPERATING_HOURS = Array.from({ length: 15 }, (_, i) => i + 7);
+// Sesi operasional lapangan: Pagi, Siang/Sore, Malam Prime-Time
+const SESSIONS = [
+    { title: "Sesi Pagi", timeRange: "07:00 - 12:00 WIB", icon: "☀️", hours: [7, 8, 9, 10, 11] },
+    { title: "Sesi Siang & Sore", timeRange: "12:00 - 17:00 WIB", icon: "⛅", hours: [12, 13, 14, 15, 16] },
+    { title: "Sesi Malam Prime-Time", timeRange: "17:00 - 22:00 WIB", icon: "🌙", hours: [17, 18, 19, 20, 21], isPrime: true },
+];
 
 function getDateString(offsetDays = 0) {
     const d = new Date();
@@ -25,6 +29,16 @@ function getDateString(offsetDays = 0) {
     const m = String(d.getMonth() + 1).padStart(2, "0");
     const day = String(d.getDate()).padStart(2, "0");
     return `${d.getFullYear()}-${m}-${day}`;
+}
+
+function getCourtBadges(name: string) {
+    if (name.toLowerCase().includes("parquet") || name.toLowerCase().includes("kayu")) {
+        return ["🏸 Parquet Kayu Solid", "💡 Lampu LED Presisi", "❄️ Suhu Sejuk", "👥 Single & Double"];
+    }
+    if (name.toLowerCase().includes("karpet") || name.toLowerCase().includes("pbsi")) {
+        return ["🏸 Karpet Standar PBSI", "💡 Lampu Sorot LED", "❄️ Kipas Blower", "👥 Standar Turnamen"];
+    }
+    return ["🏸 Karpet Vinyl BWF Biru", "💡 600 Lux Anti-Silau", "❄️ Exhaust Air Blower", "👥 Standar Dunia"];
 }
 
 export default function BookingForm({
@@ -43,7 +57,7 @@ export default function BookingForm({
     const [courtId, setCourtId] = useState<number | null>(null);
     const [date, setDate] = useState(getDateString(0));
     const [hour, setHour] = useState(18);
-    const [duration, setDuration] = useState(1);
+    const [duration, setDuration] = useState(2); // default 2 jam yang paling populer
     const [slots, setSlots] = useState<Slot[]>([]);
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
@@ -209,12 +223,22 @@ export default function BookingForm({
             </h2>
 
             <form onSubmit={submit}>
-                {/* Langkah 1: Pilih Lapangan */}
+                {/* Langkah 1: Pilih Lapangan Mewah dengan Fasilitas Lengkap */}
                 <div className="form-group">
-                    <label className="form-label">Langkah 1: Pilih Lapangan</label>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                        <label className="form-label" style={{ margin: 0 }}>
+                            Langkah 1: Pilih Lapangan
+                        </label>
+                        <span style={{ fontSize: "0.78rem", color: "var(--accent)", fontWeight: 700 }}>
+                            {courts.length} Lapangan Siap Digunakan
+                        </span>
+                    </div>
+
                     <div className="court-grid">
                         {courts.map((c) => {
                             const isSelected = c.id === selectedId;
+                            const badges = getCourtBadges(c.name);
+
                             return (
                                 <div
                                     key={c.id}
@@ -228,12 +252,19 @@ export default function BookingForm({
                                         )}
                                     </div>
                                     <div className="court-price">
-                                        Rp {c.price_per_hour.toLocaleString("id-ID")} <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: "normal" }}>/ jam</span>
+                                        Rp {c.price_per_hour.toLocaleString("id-ID")}{" "}
+                                        <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: "normal" }}>
+                                            / jam
+                                        </span>
                                     </div>
-                                    <div className="court-meta">
-                                        <span>🏸 Karpet Standar PBSI</span>
-                                        <span>•</span>
-                                        <span>💡 Lampu LED</span>
+
+                                    {/* Fasilitas Spesifik Lapangan */}
+                                    <div className="court-tag-list">
+                                        {badges.map((badge, idx) => (
+                                            <span key={idx} className="court-tag">
+                                                {badge}
+                                            </span>
+                                        ))}
                                     </div>
                                 </div>
                             );
@@ -241,9 +272,10 @@ export default function BookingForm({
                     </div>
                 </div>
 
-                {/* Langkah 2: Pilih Tanggal & Durasi */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "1.25rem", marginBottom: "0.5rem" }}>
-                    <div className="form-group">
+                {/* Langkah 2: Pilih Tanggal & Durasi Pill */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.25rem", marginBottom: "1rem" }}>
+                    {/* Tanggal Main */}
+                    <div className="form-group" style={{ margin: 0 }}>
                         <label className="form-label">Langkah 2: Tanggal Main</label>
                         <input
                             type="date"
@@ -277,20 +309,38 @@ export default function BookingForm({
                         </div>
                     </div>
 
-                    <div className="form-group">
-                        <label className="form-label">Durasi Main</label>
-                        <select value={duration} onChange={(e) => setDuration(Number(e.target.value))}>
-                            <option value={1}>1 Jam</option>
-                            <option value={2}>2 Jam</option>
-                            <option value={3}>3 Jam</option>
-                        </select>
-                        <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: "0.45rem" }}>
-                            Selesai main: pukul <strong>{String(endHour).padStart(2, "0")}:00</strong>
+                    {/* Durasi Main (Model Tombol Pill yang Nyaman) */}
+                    <div className="form-group" style={{ margin: 0 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.45rem" }}>
+                            <label className="form-label" style={{ margin: 0 }}>
+                                Durasi Bermain
+                            </label>
+                            <span style={{ fontSize: "0.8rem", color: "var(--accent)", fontWeight: 700 }}>
+                                Selesai: {String(endHour).padStart(2, "0")}:00 WIB
+                            </span>
+                        </div>
+
+                        <div className="duration-pill-group">
+                            {[
+                                { h: 1, label: "1 Jam", sub: "Pemanasan" },
+                                { h: 2, label: "2 Jam", sub: "Populer 🔥" },
+                                { h: 3, label: "3 Jam", sub: "Turnamen" },
+                            ].map((item) => (
+                                <button
+                                    key={item.h}
+                                    type="button"
+                                    className={`duration-pill-btn ${duration === item.h ? "active" : ""}`}
+                                    onClick={() => setDuration(item.h)}
+                                >
+                                    <span className="duration-pill-label">{item.label}</span>
+                                    <span className="duration-pill-sub">{item.sub}</span>
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </div>
 
-                {/* Langkah 3: Visual Time-Slot Grid */}
+                {/* Langkah 3: Pengelompokan Slot Jam (Pagi, Siang/Sore, Malam Prime-Time) */}
                 <div className="slots-container">
                     <div className="slot-grid-header">
                         <div>
@@ -298,7 +348,7 @@ export default function BookingForm({
                                 Langkah 3: Pilih Jam Mulai Main
                             </label>
                             <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                                Klik kotak jam yang masih kosong untuk memilih
+                                Jam dikelompokkan berdasarkan sesi untuk kemudahan memilih
                             </div>
                         </div>
 
@@ -318,38 +368,58 @@ export default function BookingForm({
                         </div>
                     </div>
 
-                    <div className="time-slot-grid">
-                        {OPERATING_HOURS.map((h) => {
-                            const booked = isHourBooked(h);
-                            const selected = h === hour;
-                            const inRange = isInSelectedRange(h);
-
-                            let stateClass = "";
-                            if (booked) {
-                                stateClass = "booked";
-                            } else if (selected) {
-                                stateClass = "selected";
-                            } else if (inRange) {
-                                stateClass = "in-range";
-                            }
-
-                            return (
-                                <button
-                                    key={h}
-                                    type="button"
-                                    disabled={booked}
-                                    className={`slot-button ${stateClass}`}
-                                    onClick={() => setHour(h)}
-                                    title={booked ? "Slot jam ini sudah dipesan" : `Pilih main jam ${String(h).padStart(2, "0")}:00`}
-                                >
-                                    <span className="slot-time">{String(h).padStart(2, "0")}:00</span>
-                                    <span className="slot-status">
-                                        {booked ? "Terisi" : selected ? "Mulai" : inRange ? "Dalam Durasi" : "Kosong"}
+                    {/* Render Sesi Waktu */}
+                    {SESSIONS.map((session, sIdx) => (
+                        <div key={sIdx} className="slot-session-section">
+                            <div className="slot-session-header">
+                                <div className="slot-session-title">
+                                    <span>{session.icon}</span>
+                                    <span>{session.title}</span>
+                                    <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: "normal" }}>
+                                        ({session.timeRange})
                                     </span>
-                                </button>
-                            );
-                        })}
-                    </div>
+                                </div>
+                                {session.isPrime && (
+                                    <span className="slot-session-badge prime">
+                                        🔥 Jam Favorit Komunitas
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="time-slot-grid">
+                                {session.hours.map((h) => {
+                                    const booked = isHourBooked(h);
+                                    const selected = h === hour;
+                                    const inRange = isInSelectedRange(h);
+
+                                    let stateClass = "";
+                                    if (booked) {
+                                        stateClass = "booked";
+                                    } else if (selected) {
+                                        stateClass = "selected";
+                                    } else if (inRange) {
+                                        stateClass = "in-range";
+                                    }
+
+                                    return (
+                                        <button
+                                            key={h}
+                                            type="button"
+                                            disabled={booked}
+                                            className={`slot-button ${stateClass}`}
+                                            onClick={() => setHour(h)}
+                                            title={booked ? "Slot jam ini sudah dipesan" : `Pilih main jam ${String(h).padStart(2, "0")}:00`}
+                                        >
+                                            <span className="slot-time">{String(h).padStart(2, "0")}:00</span>
+                                            <span className="slot-status">
+                                                {booked ? "Terisi" : selected ? "Mulai" : inRange ? "Dalam Durasi" : "Kosong"}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ))}
                 </div>
 
                 {/* Notifikasi Error & Bentrok */}
@@ -408,17 +478,46 @@ export default function BookingForm({
                     </div>
                 )}
 
-                {/* Ringkasan Pesanan & Tombol Aksi */}
-                <div className="summary-box">
-                    <div className="summary-details">
-                        <div style={{ color: "var(--text-muted)", fontSize: "0.8rem", textTransform: "uppercase", fontWeight: 700 }}>
-                            Ringkasan Jadwal Pesanan
+                {/* Langkah 4: Rincian Biaya Model Struk / Receipt Transparan */}
+                <div className="receipt-card">
+                    <div className="receipt-header">
+                        <div className="receipt-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                            </svg>
+                            Rincian Pesanan & Pembayaran
                         </div>
-                        <strong>{selectedCourt?.name}</strong> • {date} (Pukul {String(hour).padStart(2, "0")}:00 - {String(endHour).padStart(2, "0")}:00, {duration} jam)
+                        <span className="receipt-badge-guarantee">🛡️ Bebas Double Booking</span>
                     </div>
-                    <div style={{ textAlign: "right" }}>
-                        <div style={{ color: "var(--text-muted)", fontSize: "0.8rem", fontWeight: 600 }}>Total Tarif</div>
-                        <div className="summary-price">
+
+                    <div className="receipt-row">
+                        <span>Sewa Lapangan ({selectedCourt?.name})</span>
+                        <strong>Rp {((selectedCourt?.price_per_hour ?? 0) * duration).toLocaleString("id-ID")}</strong>
+                    </div>
+
+                    <div className="receipt-row">
+                        <span>Jadwal & Durasi Main</span>
+                        <span>
+                            {date} • Pukul {String(hour).padStart(2, "0")}:00 - {String(endHour).padStart(2, "0")}:00 ({duration} Jam)
+                        </span>
+                    </div>
+
+                    <div className="receipt-row">
+                        <span>Biaya Layanan & Pajak</span>
+                        <span style={{ color: "#16a34a", fontWeight: 700 }}>Gratis (Rp 0)</span>
+                    </div>
+
+                    <div className="receipt-divider"></div>
+
+                    <div className="receipt-total-row">
+                        <div>
+                            <div className="receipt-total-label">Total Pembayaran</div>
+                            <div style={{ fontSize: "0.75rem", color: "#64748b" }}>Termasuk PPN & E-Ticket Resmi</div>
+                        </div>
+                        <div className="receipt-total-val">
                             Rp {((selectedCourt?.price_per_hour ?? 0) * duration).toLocaleString("id-ID")}
                         </div>
                     </div>
@@ -433,7 +532,7 @@ export default function BookingForm({
                         {loading
                             ? "Memproses Pemesanan & Pembayaran..."
                             : isLoggedIn
-                            ? "Lanjut ke Pembayaran (Midtrans)"
+                            ? "🔒 Lanjut ke Pembayaran Aman (Midtrans)"
                             : "Pesan Sekarang (Masuk untuk Menyelesaikan)"}
                     </button>
                     {!isLoggedIn && (
