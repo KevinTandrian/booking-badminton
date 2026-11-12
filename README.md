@@ -8,6 +8,17 @@ REST API untuk sistem pemesanan lapangan bulutangkis. Pelanggan bisa melihat jad
 
 Node.js, TypeScript, Express, PostgreSQL, JWT, bcrypt, Vitest + Supertest, Docker, GitHub Actions
 
+## Akun Demo & Uji Coba Cepat (1-Klik)
+
+Untuk kemudahan pengujian tanpa perlu mendaftar secara manual, tersedia fitur **1-Click Login** langsung di formulir login:
+* **Admin Demo**: `admin@badminton.demo` | `password123` *(Bisa mengelola lapangan & membatalkan booking)*
+* **Member Demo**: `user@badminton.demo` | `password123` *(Bisa memesan lapangan & melihat riwayat booking sendiri)*
+
+Untuk mengisi data awal otomatis (lapangan & jadwal contoh):
+```bash
+npm run seed
+```
+
 ## Cara menjalankan
 
 Butuh Docker dan file `.env` berisi `JWT_SECRET=isi_acak_anda`.

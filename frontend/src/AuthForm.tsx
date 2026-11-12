@@ -15,6 +15,23 @@ export default function AuthForm({
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
+    async function quickLogin(demoEmail: string, demoPass: string) {
+        setError("");
+        setLoading(true);
+        try {
+            const { token } = await api<{ token: string }>("/auth/login", {
+                method: "POST",
+                body: JSON.stringify({ email: demoEmail, password: demoPass }),
+            });
+            localStorage.setItem("token", token);
+            onLogin();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Gagal masuk dengan akun demo");
+        } finally {
+            setLoading(false);
+        }
+    }
+
     async function submit(e: FormEvent) {
         e.preventDefault();
         setError("");
@@ -47,7 +64,37 @@ export default function AuthForm({
                 </div>
             )}
 
-            {/* Navigasi Tab Masuk / Daftar */}
+            {/* Quick Demo Login Box khusus Portofolio & Reviewer */}
+            <div style={{ background: "#eff6ff", border: "1.5px solid #bfdbfe", padding: "1rem", borderRadius: "12px", marginBottom: "1.25rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", color: "#1e40af", fontWeight: 700, fontSize: "0.85rem", marginBottom: "0.35rem" }}>
+                    <span>🚀 Akses Cepat Portofolio (1-Klik Tanpa Ketik):</span>
+                </div>
+                <p style={{ fontSize: "0.8rem", color: "#3b82f6", marginBottom: "0.75rem" }}>
+                    Klik tombol di bawah untuk langsung mencoba aplikasi sebagai Admin atau Member:
+                </p>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem" }}>
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        style={{ background: "#ffffff", borderColor: "#93c5fd", color: "#1e3a8a", padding: "0.55rem 0.6rem", fontSize: "0.8rem", fontWeight: 700 }}
+                        disabled={loading}
+                        onClick={() => quickLogin("admin@badminton.demo", "password123")}
+                    >
+                        🔑 Masuk sbg Admin
+                    </button>
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        style={{ background: "#ffffff", borderColor: "#93c5fd", color: "#1e3a8a", padding: "0.55rem 0.6rem", fontSize: "0.8rem", fontWeight: 700 }}
+                        disabled={loading}
+                        onClick={() => quickLogin("user@badminton.demo", "password123")}
+                    >
+                        👤 Masuk sbg Member
+                    </button>
+                </div>
+            </div>
+
+            {/* Navigasi Tab Masuk / Daftar Manual */}
             <div className="nav-tabs" style={{ marginBottom: "1.25rem" }}>
                 <button
                     type="button"
@@ -57,7 +104,7 @@ export default function AuthForm({
                         setError("");
                     }}
                 >
-                    Masuk
+                    Masuk Manual
                 </button>
                 <button
                     type="button"
