@@ -229,6 +229,7 @@ export default function App() {
           onBooked={refresh}
           isLoggedIn={loggedIn}
           onRequestLogin={() => setShowAuthModal(true)}
+          onViewMyBookings={() => setActiveTab("my-bookings")}
         />
       )}
 

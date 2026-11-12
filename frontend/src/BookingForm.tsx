@@ -47,12 +47,14 @@ export default function BookingForm({
     onBooked,
     isLoggedIn,
     onRequestLogin,
+    onViewMyBookings,
 }: {
     courts: Court[];
     refreshKey: number;
     onBooked: () => void;
     isLoggedIn: boolean;
     onRequestLogin: () => void;
+    onViewMyBookings?: () => void;
 }) {
     const [courtId, setCourtId] = useState<number | null>(null);
     const [date, setDate] = useState(getDateString(0));
@@ -61,9 +63,9 @@ export default function BookingForm({
     const [slots, setSlots] = useState<Slot[]>([]);
     const [loadingSlots, setLoadingSlots] = useState(false);
     const [error, setError] = useState("");
-    const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
     const [pendingOrder, setPendingOrder] = useState<BookingResponse | null>(null);
+    const [paidOrder, setPaidOrder] = useState<BookingResponse | null>(null);
     const [toast, setToast] = useState<{ message: string; type: "success" | "info" | "warning" } | null>(null);
 
     function showToast(msg: string, type: "success" | "info" | "warning" = "info") {
@@ -92,7 +94,6 @@ export default function BookingForm({
 
     useEffect(() => {
         setError("");
-        setMessage("");
     }, [selectedId, date, hour, duration]);
 
     // Cek apakah jam tertentu sudah terisi (booked)
@@ -113,7 +114,7 @@ export default function BookingForm({
         return h >= hour && h < hour + duration;
     }
 
-    // Cek apakah range durasi saat ini bentrok dengan slot yang terisi
+    // Cek apakah range durasi saat ini bentrok dengan slot yang terisi (hanya dicek saat memilih, bukan saat bayar)
     const hasCollision = Array.from({ length: duration }, (_, i) => hour + i).some((h) =>
         isHourBooked(h)
     );
@@ -121,12 +122,22 @@ export default function BookingForm({
     const endHour = hour + duration;
     const isPastClosing = endHour > 22;
 
+    function resetToNewBooking() {
+        setPendingOrder(null);
+        setPaidOrder(null);
+        setError("");
+        // Cari jam yang kosong terdekat atau default 18
+        setHour(18);
+        onBooked();
+    }
+
     async function triggerSimulatedPayment(orderId: string) {
         setLoading(true);
         setError("");
         try {
             await api(`/payments/simulate/${orderId}`, { method: "POST" });
-            setMessage("Pembayaran sukses dikonfirmasi! Status pesanan Anda kini telah LUNAS.");
+            showToast("Pembayaran Lunas! E-Ticket berhasil diterbitkan.", "success");
+            setPaidOrder(pendingOrder);
             setPendingOrder(null);
             onBooked();
         } catch (err) {
@@ -158,8 +169,6 @@ export default function BookingForm({
         }
 
         setError("");
-        setMessage("");
-        setPendingOrder(null);
         setLoading(true);
 
         try {
@@ -178,29 +187,28 @@ export default function BookingForm({
             const snap = (window as unknown as { snap?: { pay: (token: string, callbacks: Record<string, () => void>) => void } }).snap;
 
             if (!res.is_simulated && res.snap_token && snap) {
-                // Membuka popup pembayaran resmi Midtrans Snap (QRIS, VA BCA/Mandiri, dll.)
+                // Membuka popup pembayaran resmi Midtrans Snap
                 snap.pay(res.snap_token, {
                     onSuccess: () => {
-                        setMessage(`Pembayaran berhasil! Booking untuk ${selectedCourt?.name} telah terkonfirmasi.`);
+                        setPaidOrder(res);
+                        setPendingOrder(null);
                         onBooked();
                     },
                     onPending: () => {
-                        setMessage(`Pesanan ${res.order_id} dibuat! Menunggu pembayaran diselesaikan.`);
+                        setPendingOrder(res);
                         onBooked();
                     },
                     onError: () => {
-                        setError("Pembayaran ditolak atau gagal.");
-                        onBooked();
+                        setError("Pembayaran ditolak atau dibatalkan oleh Midtrans.");
                     },
                     onClose: () => {
-                        onBooked();
+                        setPendingOrder(res);
                     },
                 });
             } else {
-                // Mode Sandbox Simulator untuk Portofolio
+                // Mode Sandbox Simulator untuk Portofolio -> Langsung alihkan ke layar checkout
                 setPendingOrder(res);
-                setMessage(`Pemesanan berhasil dibuat (Order ID: ${res.order_id}). Silakan selesaikan pembayaran.`);
-                onBooked();
+                showToast("Pesanan dibuat! Silakan selesaikan pembayaran.", "info");
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : "Terjadi kesalahan saat memproses booking");
@@ -221,6 +229,215 @@ export default function BookingForm({
     const tomorrow = getDateString(1);
     const dayAfter = getDateString(2);
 
+    // =========================================================================
+    // TAMPILAN 1: PEMBAYARAN SUKSES & E-TICKET TERBIT (STATE: PAID)
+    // =========================================================================
+    if (paidOrder) {
+        return (
+            <div className="card">
+                {/* Stepper: Semua Selesai */}
+                <div className="booking-stepper" aria-label="Alur Pemesanan Lapangan">
+                    <div className="stepper-step completed">
+                        <div className="stepper-number">✓</div>
+                        <span className="stepper-title">1. Pilih Lapangan</span>
+                    </div>
+                    <div className="stepper-line completed"></div>
+                    <div className="stepper-step completed">
+                        <div className="stepper-number">✓</div>
+                        <span className="stepper-title">2. Pilih Jadwal & Jam</span>
+                    </div>
+                    <div className="stepper-line completed"></div>
+                    <div className="stepper-step completed">
+                        <div className="stepper-number">✓</div>
+                        <span className="stepper-title">3. Pembayaran Lunas</span>
+                    </div>
+                </div>
+
+                <div className="success-card">
+                    <div className="success-icon-wrap">✓</div>
+                    <h3 className="success-title">Pembayaran Berhasil & Slot Terkonfirmasi!</h3>
+                    <p className="success-desc">
+                        Selamat! Jadwal bermain Anda telah resmi terdaftar dalam sistem. E-Ticket digital dengan QR Code check-in siap digunakan saat tiba di GOR.
+                    </p>
+
+                    <div className="success-summary-box">
+                        <div className="checkout-item-row">
+                            <span>Kode Booking (Order ID)</span>
+                            <strong style={{ fontFamily: "monospace", color: "var(--accent)" }}>{paidOrder.order_id}</strong>
+                        </div>
+                        <div className="checkout-item-row">
+                            <span>Lapangan</span>
+                            <strong>{selectedCourt?.name}</strong>
+                        </div>
+                        <div className="checkout-item-row">
+                            <span>Jadwal Bermain</span>
+                            <strong>{date} • Pukul {String(hour).padStart(2, "0")}:00 - {String(endHour).padStart(2, "0")}:00 WIB ({duration} Jam)</strong>
+                        </div>
+                        <div className="checkout-item-row" style={{ borderBottom: "none" }}>
+                            <span>Status Pembayaran</span>
+                            <strong style={{ color: "#16a34a", fontSize: "1.05rem" }}>✓ LUNAS (Midtrans Snap)</strong>
+                        </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
+                        {onViewMyBookings && (
+                            <button
+                                type="button"
+                                className="btn btn-primary"
+                                style={{ padding: "0.65rem 1.4rem", fontWeight: 800 }}
+                                onClick={() => {
+                                    resetToNewBooking();
+                                    onViewMyBookings();
+                                }}
+                            >
+                                🎫 Buka E-Ticket di Booking Saya
+                            </button>
+                        )}
+                        <button
+                            type="button"
+                            className="btn btn-secondary"
+                            style={{ padding: "0.65rem 1.4rem" }}
+                            onClick={resetToNewBooking}
+                        >
+                            🏸 Pesan Jadwal Lain
+                        </button>
+                    </div>
+                </div>
+
+                {toast && (
+                    <div className="toast-container" role="status" aria-live="polite">
+                        <div className={`toast-message ${toast.type}`}>
+                            <span>{toast.type === "success" ? "✅" : toast.type === "warning" ? "⚠️" : "⚡"}</span>
+                            <span>{toast.message}</span>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // =========================================================================
+    // TAMPILAN 2: TAHAP CHECKOUT & PEMBAYARAN (STATE: PENDING ORDER)
+    // =========================================================================
+    if (pendingOrder) {
+        return (
+            <div className="card checkout-view">
+                {/* Stepper: Step 1 ✓, Step 2 ✓, Step 3 Active */}
+                <div className="booking-stepper" aria-label="Alur Pemesanan Lapangan">
+                    <div className="stepper-step completed">
+                        <div className="stepper-number">✓</div>
+                        <span className="stepper-title">1. Pilih Lapangan</span>
+                    </div>
+                    <div className="stepper-line completed"></div>
+                    <div className="stepper-step completed">
+                        <div className="stepper-number">✓</div>
+                        <span className="stepper-title">2. Pilih Jadwal & Jam</span>
+                    </div>
+                    <div className="stepper-line"></div>
+                    <div className="stepper-step active">
+                        <div className="stepper-number">3</div>
+                        <span className="stepper-title">3. Pembayaran</span>
+                    </div>
+                </div>
+
+                <div className="checkout-card">
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.25rem", flexWrap: "wrap", gap: "0.5rem" }}>
+                        <div>
+                            <h3 style={{ fontSize: "1.25rem", fontWeight: 800, color: "#0f172a", margin: "0 0 0.25rem" }}>
+                                Konfirmasi & Selesaikan Pembayaran
+                            </h3>
+                            <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", margin: 0 }}>
+                                Slot lapangan Anda telah diamankan sementara. Silakan selesaikan pembayaran untuk menerbitkan E-Ticket.
+                            </p>
+                        </div>
+                        <span className="checkout-badge-status">
+                            ⏳ Menunggu Pembayaran
+                        </span>
+                    </div>
+
+                    <div className="checkout-item-row">
+                        <span>Kode Booking (Order ID)</span>
+                        <strong style={{ fontFamily: "monospace", color: "var(--accent)" }}>{pendingOrder.order_id}</strong>
+                    </div>
+                    <div className="checkout-item-row">
+                        <span>Lapangan</span>
+                        <strong>{selectedCourt?.name}</strong>
+                    </div>
+                    <div className="checkout-item-row">
+                        <span>Tanggal & Jam Main</span>
+                        <strong>{date} • Pukul {String(hour).padStart(2, "0")}:00 - {String(endHour).padStart(2, "0")}:00 WIB</strong>
+                    </div>
+                    <div className="checkout-item-row">
+                        <span>Durasi Sewa</span>
+                        <strong>{duration} Jam</strong>
+                    </div>
+
+                    <div className="checkout-total-box">
+                        <div>
+                            <div style={{ fontSize: "0.85rem", color: "#64748b", fontWeight: 600 }}>Total yang Harus Dibayar:</div>
+                            <div style={{ fontSize: "0.75rem", color: "#64748b" }}>Termasuk PPN & Biaya E-Ticket Resmi</div>
+                        </div>
+                        <div className="checkout-total-val">
+                            Rp {pendingOrder.total_price.toLocaleString("id-ID")}
+                        </div>
+                    </div>
+
+                    {/* Simulasi Pembayaran Midtrans Snap */}
+                    <div className="simulation-box">
+                        <div style={{ fontSize: "0.95rem", fontWeight: 800, color: "#1e40af", marginBottom: "0.35rem" }}>
+                            🛡️ Midtrans Snap Payment Gateway
+                        </div>
+                        <p style={{ fontSize: "0.82rem", color: "#475569", marginBottom: "1rem" }}>
+                            Simulasi pembayaran instan untuk keperluan uji coba dan evaluasi portofolio.
+                        </p>
+
+                        <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
+                            <button
+                                type="button"
+                                className="btn btn-primary"
+                                style={{ padding: "0.7rem 1.5rem", fontSize: "0.95rem", fontWeight: 800 }}
+                                disabled={loading}
+                                onClick={() => triggerSimulatedPayment(pendingOrder.order_id)}
+                            >
+                                {loading ? "Memproses Pembayaran..." : "⚡ Bayar Sekarang (Simulasi Lunas)"}
+                            </button>
+                            <button
+                                type="button"
+                                className="btn btn-secondary"
+                                style={{ padding: "0.7rem 1.25rem", fontSize: "0.9rem" }}
+                                disabled={loading}
+                                onClick={() => {
+                                    setPendingOrder(null);
+                                    showToast("Pesanan dibatalkan. Silakan pilih jadwal lain.", "info");
+                                }}
+                            >
+                                ← Batalkan & Pilih Jadwal Lain
+                            </button>
+                        </div>
+                    </div>
+
+                    {error && (
+                        <div className="alert alert-danger" style={{ marginTop: "1rem" }}>
+                            <span>{error}</span>
+                        </div>
+                    )}
+                </div>
+
+                {toast && (
+                    <div className="toast-container" role="status" aria-live="polite">
+                        <div className={`toast-message ${toast.type}`}>
+                            <span>{toast.type === "success" ? "✅" : toast.type === "warning" ? "⚠️" : "⚡"}</span>
+                            <span>{toast.message}</span>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // =========================================================================
+    // TAMPILAN 3: FORMULIR PEMILIHAN JADWAL LAPANGAN (STATE: SELECTING)
+    // =========================================================================
     return (
         <div className="card">
             <h2 className="card-title">
@@ -244,9 +461,9 @@ export default function BookingForm({
                     <div className="stepper-number">{date && hour ? "✓" : "2"}</div>
                     <span className="stepper-title">2. Pilih Jadwal & Jam</span>
                 </div>
-                <div className={`stepper-line ${pendingOrder ? "completed" : ""}`}></div>
-                <div className={`stepper-step ${pendingOrder ? "completed" : "active"}`}>
-                    <div className="stepper-number">{pendingOrder ? "✓" : "3"}</div>
+                <div className="stepper-line"></div>
+                <div className="stepper-step">
+                    <div className="stepper-number">3</div>
                     <span className="stepper-title">3. Pembayaran</span>
                 </div>
             </div>
@@ -480,7 +697,7 @@ export default function BookingForm({
                     ))}
                 </div>
 
-                {/* Notifikasi Error & Bentrok */}
+                {/* Notifikasi Error & Bentrok Waktu Pemilihan */}
                 {hasCollision && (
                     <div className="alert alert-danger">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -489,14 +706,14 @@ export default function BookingForm({
                             <line x1="12" y1="16" x2="12.01" y2="16"></line>
                         </svg>
                         <span>
-                            <strong>Slot Bentrok!</strong> Ada jam yang sudah terisi antara pukul {String(hour).padStart(2, "0")}:00 s/d {String(endHour).padStart(2, "0")}:00. Silakan pilih jam lain.
+                            <strong>Slot Bertabrakan!</strong> Jam {String(hour).padStart(2, "0")}:00 s/d {String(endHour).padStart(2, "0")}:00 sudah terisi. Silakan pilih jam atau durasi lain.
                         </span>
                     </div>
                 )}
 
                 {isPastClosing && (
                     <div className="alert alert-danger">
-                        <span>Jam selesai ({String(endHour).padStart(2, "0")}:00) melewati jam tutup operasional (22:00).</span>
+                        <span>Jam selesai ({String(endHour).padStart(2, "0")}:00) melewati jam tutup operasional arena (22:00 WIB).</span>
                     </div>
                 )}
 
@@ -506,37 +723,7 @@ export default function BookingForm({
                     </div>
                 )}
 
-                {message && (
-                    <div className="alert alert-success">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                        </svg>
-                        <span>{message}</span>
-                    </div>
-                )}
-
-                {/* Modal / Card Simulasi Pembayaran Sandbox */}
-                {pendingOrder && (
-                    <div style={{ background: "#eff6ff", border: "2px dashed #2563eb", padding: "1.25rem", borderRadius: "12px", marginBottom: "1.25rem", textAlign: "center" }}>
-                        <div style={{ fontSize: "1.05rem", fontWeight: 800, color: "#1e40af", marginBottom: "0.4rem" }}>
-                            💳 Pembayaran Midtrans Snap (Sandbox Simulation)
-                        </div>
-                        <p style={{ fontSize: "0.85rem", color: "#1d4ed8", marginBottom: "0.85rem" }}>
-                            Order ID: <strong>{pendingOrder.order_id}</strong> • Total: <strong>Rp {pendingOrder.total_price.toLocaleString("id-ID")}</strong>
-                        </p>
-                        <button
-                            type="button"
-                            className="btn btn-primary"
-                            disabled={loading}
-                            onClick={() => triggerSimulatedPayment(pendingOrder.order_id)}
-                        >
-                            {loading ? "Memproses..." : "⚡ Bayar Sekarang (Simulasi Lunas)"}
-                        </button>
-                    </div>
-                )}
-
-                {/* Langkah 4: Rincian Biaya Model Struk / Receipt Transparan */}
+                {/* Langkah 4: Rincian Biaya Model Struk Transparan */}
                 <div className="receipt-card">
                     <div className="receipt-header">
                         <div className="receipt-title">
@@ -546,7 +733,7 @@ export default function BookingForm({
                                 <line x1="16" y1="13" x2="8" y2="13"></line>
                                 <line x1="16" y1="17" x2="8" y2="17"></line>
                             </svg>
-                            Rincian Pesanan & Pembayaran
+                            Rincian Estimasi Pesanan
                         </div>
                         <span className="receipt-badge-guarantee">🛡️ Bebas Double Booking</span>
                     </div>
@@ -588,9 +775,9 @@ export default function BookingForm({
                         disabled={loading || hasCollision || isPastClosing}
                     >
                         {loading
-                            ? "Memproses Pemesanan & Pembayaran..."
+                            ? "Memproses Pemesanan..."
                             : isLoggedIn
-                            ? "🔒 Lanjut ke Pembayaran Aman (Midtrans)"
+                            ? "🔒 Lanjut ke Pembayaran (Midtrans)"
                             : "Pesan Sekarang (Masuk untuk Menyelesaikan)"}
                     </button>
                     {!isLoggedIn && (
@@ -601,7 +788,7 @@ export default function BookingForm({
                 </div>
             </form>
 
-            {/* Sticky Mobile Booking Bar */}
+            {/* Sticky Mobile Booking Bar (Hanya tampil saat memilih slot di HP) */}
             <div className="sticky-mobile-bar" aria-label="Ringkasan Cepat Pesanan">
                 <div className="sticky-mobile-info">
                     <span className="sticky-mobile-court">{selectedCourt?.name} • {duration} Jam</span>
