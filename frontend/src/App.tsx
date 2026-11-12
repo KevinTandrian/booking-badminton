@@ -141,6 +141,41 @@ export default function App() {
         </div>
       </section>
 
+      {/* Quick Stats & Trust Bar */}
+      <section className="trust-bar" aria-label="Keunggulan Arena">
+        <div className="trust-item">
+          <div className="trust-icon-wrap">⭐</div>
+          <div className="trust-text">
+            <span className="trust-value">4.9 / 5.0 Rating</span>
+            <span className="trust-label">150+ Ulasan Komunitas</span>
+          </div>
+        </div>
+
+        <div className="trust-item">
+          <div className="trust-icon-wrap">🏸</div>
+          <div className="trust-text">
+            <span className="trust-value">Standar PBSI & BWF</span>
+            <span className="trust-label">Karpet Vinyl Tebal 4.5mm</span>
+          </div>
+        </div>
+
+        <div className="trust-item">
+          <div className="trust-icon-wrap">👥</div>
+          <div className="trust-text">
+            <span className="trust-value">1.500+ Jam Reservasi</span>
+            <span className="trust-label">300+ Member Aktif</span>
+          </div>
+        </div>
+
+        <div className="trust-item">
+          <div className="trust-icon-wrap">⚡</div>
+          <div className="trust-text">
+            <span className="trust-value">Anti Double-Booking</span>
+            <span className="trust-label">Validasi Otomatis Database</span>
+          </div>
+        </div>
+      </section>
+
       {/* Navigasi Tab */}
       <div className="nav-tabs">
         <button

@@ -59,10 +59,19 @@ export default function BookingForm({
     const [hour, setHour] = useState(18);
     const [duration, setDuration] = useState(2); // default 2 jam yang paling populer
     const [slots, setSlots] = useState<Slot[]>([]);
+    const [loadingSlots, setLoadingSlots] = useState(false);
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
     const [pendingOrder, setPendingOrder] = useState<BookingResponse | null>(null);
+    const [toast, setToast] = useState<{ message: string; type: "success" | "info" | "warning" } | null>(null);
+
+    function showToast(msg: string, type: "success" | "info" | "warning" = "info") {
+        setToast({ message: msg, type });
+        setTimeout(() => {
+            setToast((curr) => (curr?.message === msg ? null : curr));
+        }, 3000);
+    }
 
     const selectedId = courtId ?? courts[0]?.id;
     const selectedCourt = courts.find((c) => c.id === selectedId);
@@ -70,13 +79,15 @@ export default function BookingForm({
     // Muat jadwal terisi untuk lapangan & tanggal yang dipilih
     useEffect(() => {
         if (!selectedId || !date) return;
+        setLoadingSlots(true);
         const from = new Date(`${date}T00:00:00`);
         const to = new Date(from);
         to.setDate(to.getDate() + 1);
         const q = `from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}`;
         api<Slot[]>(`/courts/${selectedId}/schedule?${q}`)
             .then(setSlots)
-            .catch((e) => setError(e.message));
+            .catch((e) => setError(e.message))
+            .finally(() => setLoadingSlots(false));
     }, [selectedId, date, refreshKey]);
 
     useEffect(() => {
@@ -222,6 +233,24 @@ export default function BookingForm({
                 Pilih Jadwal & Pesan Lapangan
             </h2>
 
+            {/* Stepper Progress Indicator */}
+            <div className="booking-stepper" aria-label="Alur Pemesanan Lapangan">
+                <div className={`stepper-step ${selectedCourt ? "completed" : "active"}`}>
+                    <div className="stepper-number">{selectedCourt ? "✓" : "1"}</div>
+                    <span className="stepper-title">1. Pilih Lapangan</span>
+                </div>
+                <div className={`stepper-line ${date && hour ? "completed" : ""}`}></div>
+                <div className={`stepper-step ${date && hour ? "completed" : "active"}`}>
+                    <div className="stepper-number">{date && hour ? "✓" : "2"}</div>
+                    <span className="stepper-title">2. Pilih Jadwal & Jam</span>
+                </div>
+                <div className={`stepper-line ${pendingOrder ? "completed" : ""}`}></div>
+                <div className={`stepper-step ${pendingOrder ? "completed" : "active"}`}>
+                    <div className="stepper-number">{pendingOrder ? "✓" : "3"}</div>
+                    <span className="stepper-title">3. Pembayaran</span>
+                </div>
+            </div>
+
             <form onSubmit={submit}>
                 {/* Langkah 1: Pilih Lapangan Mewah dengan Fasilitas Lengkap */}
                 <div className="form-group">
@@ -243,7 +272,10 @@ export default function BookingForm({
                                 <div
                                     key={c.id}
                                     className={`court-card ${isSelected ? "selected" : ""}`}
-                                    onClick={() => setCourtId(c.id)}
+                                    onClick={() => {
+                                        setCourtId(c.id);
+                                        showToast(`${c.name} dipilih`);
+                                    }}
                                 >
                                     <div className="court-header">
                                         <div className="court-name">{c.name}</div>
@@ -281,28 +313,40 @@ export default function BookingForm({
                             type="date"
                             min={today}
                             value={date}
-                            onChange={(e) => setDate(e.target.value)}
+                            onChange={(e) => {
+                                setDate(e.target.value);
+                                showToast(`Tanggal: ${e.target.value}`);
+                            }}
                             required
                         />
                         <div className="date-quick-bar">
                             <button
                                 type="button"
                                 className={`btn-chip ${date === today ? "active" : ""}`}
-                                onClick={() => setDate(today)}
+                                onClick={() => {
+                                    setDate(today);
+                                    showToast("Tanggal: Hari Ini");
+                                }}
                             >
                                 Hari Ini
                             </button>
                             <button
                                 type="button"
                                 className={`btn-chip ${date === tomorrow ? "active" : ""}`}
-                                onClick={() => setDate(tomorrow)}
+                                onClick={() => {
+                                    setDate(tomorrow);
+                                    showToast("Tanggal: Besok");
+                                }}
                             >
                                 Besok
                             </button>
                             <button
                                 type="button"
                                 className={`btn-chip ${date === dayAfter ? "active" : ""}`}
-                                onClick={() => setDate(dayAfter)}
+                                onClick={() => {
+                                    setDate(dayAfter);
+                                    showToast("Tanggal: Lusa");
+                                }}
                             >
                                 Lusa
                             </button>
@@ -330,7 +374,10 @@ export default function BookingForm({
                                     key={item.h}
                                     type="button"
                                     className={`duration-pill-btn ${duration === item.h ? "active" : ""}`}
-                                    onClick={() => setDuration(item.h)}
+                                    onClick={() => {
+                                        setDuration(item.h);
+                                        showToast(`Durasi: ${item.label}`);
+                                    }}
                                 >
                                     <span className="duration-pill-label">{item.label}</span>
                                     <span className="duration-pill-sub">{item.sub}</span>
@@ -386,38 +433,49 @@ export default function BookingForm({
                                 )}
                             </div>
 
-                            <div className="time-slot-grid">
-                                {session.hours.map((h) => {
-                                    const booked = isHourBooked(h);
-                                    const selected = h === hour;
-                                    const inRange = isInSelectedRange(h);
+                            {loadingSlots ? (
+                                <div className="time-slot-grid">
+                                    {session.hours.map((h) => (
+                                        <div key={h} className="skeleton-shimmer skeleton-slot" />
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="time-slot-grid">
+                                    {session.hours.map((h) => {
+                                        const booked = isHourBooked(h);
+                                        const selected = h === hour;
+                                        const inRange = isInSelectedRange(h);
 
-                                    let stateClass = "";
-                                    if (booked) {
-                                        stateClass = "booked";
-                                    } else if (selected) {
-                                        stateClass = "selected";
-                                    } else if (inRange) {
-                                        stateClass = "in-range";
-                                    }
+                                        let stateClass = "";
+                                        if (booked) {
+                                            stateClass = "booked";
+                                        } else if (selected) {
+                                            stateClass = "selected";
+                                        } else if (inRange) {
+                                            stateClass = "in-range";
+                                        }
 
-                                    return (
-                                        <button
-                                            key={h}
-                                            type="button"
-                                            disabled={booked}
-                                            className={`slot-button ${stateClass}`}
-                                            onClick={() => setHour(h)}
-                                            title={booked ? "Slot jam ini sudah dipesan" : `Pilih main jam ${String(h).padStart(2, "0")}:00`}
-                                        >
-                                            <span className="slot-time">{String(h).padStart(2, "0")}:00</span>
-                                            <span className="slot-status">
-                                                {booked ? "Terisi" : selected ? "Mulai" : inRange ? "Dalam Durasi" : "Kosong"}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                                        return (
+                                            <button
+                                                key={h}
+                                                type="button"
+                                                disabled={booked}
+                                                className={`slot-button ${stateClass}`}
+                                                onClick={() => {
+                                                    setHour(h);
+                                                    showToast(`Mulai jam ${String(h).padStart(2, "0")}:00 dipilih (${duration} Jam)`);
+                                                }}
+                                                title={booked ? "Slot jam ini sudah dipesan" : `Pilih main jam ${String(h).padStart(2, "0")}:00`}
+                                            >
+                                                <span className="slot-time">{String(h).padStart(2, "0")}:00</span>
+                                                <span className="slot-status">
+                                                    {booked ? "Terisi" : selected ? "Mulai" : inRange ? "Dalam Durasi" : "Kosong"}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
@@ -542,6 +600,34 @@ export default function BookingForm({
                     )}
                 </div>
             </form>
+
+            {/* Sticky Mobile Booking Bar */}
+            <div className="sticky-mobile-bar" aria-label="Ringkasan Cepat Pesanan">
+                <div className="sticky-mobile-info">
+                    <span className="sticky-mobile-court">{selectedCourt?.name} • {duration} Jam</span>
+                    <span className="sticky-mobile-price">Rp {((selectedCourt?.price_per_hour ?? 0) * duration).toLocaleString("id-ID")}</span>
+                </div>
+                <button
+                    type="button"
+                    className="sticky-mobile-btn"
+                    onClick={() => {
+                        const el = document.querySelector(".receipt-card");
+                        el?.scrollIntoView({ behavior: "smooth" });
+                    }}
+                >
+                    Lihat Struk ➜
+                </button>
+            </div>
+
+            {/* Floating Toast Notification */}
+            {toast && (
+                <div className="toast-container" role="status" aria-live="polite">
+                    <div className={`toast-message ${toast.type}`}>
+                        <span>{toast.type === "success" ? "✅" : toast.type === "warning" ? "⚠️" : "⚡"}</span>
+                        <span>{toast.message}</span>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
