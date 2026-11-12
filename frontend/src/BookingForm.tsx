@@ -4,6 +4,18 @@ import { api } from "./api";
 type Court = { id: number; name: string; price_per_hour: number };
 type Slot = { id: number; start_time: string; end_time: string };
 
+type BookingResponse = {
+    id: number;
+    order_id: string;
+    court_id: number;
+    total_price: number;
+    status: string;
+    payment_status: string;
+    snap_token?: string;
+    redirect_url?: string;
+    is_simulated?: boolean;
+};
+
 // Jam operasional: 07:00 - 22:00 (slot terakhir 21:00 - 22:00)
 const OPERATING_HOURS = Array.from({ length: 15 }, (_, i) => i + 7);
 
@@ -36,6 +48,7 @@ export default function BookingForm({
     const [error, setError] = useState("");
     const [message, setMessage] = useState("");
     const [loading, setLoading] = useState(false);
+    const [pendingOrder, setPendingOrder] = useState<BookingResponse | null>(null);
 
     const selectedId = courtId ?? courts[0]?.id;
     const selectedCourt = courts.find((c) => c.id === selectedId);
@@ -83,6 +96,21 @@ export default function BookingForm({
     const endHour = hour + duration;
     const isPastClosing = endHour > 22;
 
+    async function triggerSimulatedPayment(orderId: string) {
+        setLoading(true);
+        setError("");
+        try {
+            await api(`/payments/simulate/${orderId}`, { method: "POST" });
+            setMessage("Pembayaran sukses dikonfirmasi! Status pesanan Anda kini telah LUNAS.");
+            setPendingOrder(null);
+            onBooked();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Gagal mengonfirmasi pembayaran simulasi");
+        } finally {
+            setLoading(false);
+        }
+    }
+
     async function submit(e: FormEvent) {
         e.preventDefault();
 
@@ -106,12 +134,13 @@ export default function BookingForm({
 
         setError("");
         setMessage("");
+        setPendingOrder(null);
         setLoading(true);
 
         try {
             const start = new Date(`${date}T${String(hour).padStart(2, "0")}:00:00`);
             const end = new Date(start.getTime() + duration * 3600000);
-            await api("/bookings", {
+            const res = await api<BookingResponse>("/bookings", {
                 method: "POST",
                 body: JSON.stringify({
                     court_id: selectedId,
@@ -119,8 +148,35 @@ export default function BookingForm({
                     end_time: end.toISOString(),
                 }),
             });
-            setMessage(`Booking berhasil untuk ${selectedCourt?.name} pada ${date} pukul ${String(hour).padStart(2, "0")}:00 - ${String(endHour).padStart(2, "0")}:00!`);
-            onBooked();
+
+            // Cek apakah ada popup Midtrans Snap JS di window
+            const snap = (window as unknown as { snap?: { pay: (token: string, callbacks: Record<string, () => void>) => void } }).snap;
+
+            if (!res.is_simulated && res.snap_token && snap) {
+                // Membuka popup pembayaran resmi Midtrans Snap (QRIS, VA BCA/Mandiri, dll.)
+                snap.pay(res.snap_token, {
+                    onSuccess: () => {
+                        setMessage(`Pembayaran berhasil! Booking untuk ${selectedCourt?.name} telah terkonfirmasi.`);
+                        onBooked();
+                    },
+                    onPending: () => {
+                        setMessage(`Pesanan ${res.order_id} dibuat! Menunggu pembayaran diselesaikan.`);
+                        onBooked();
+                    },
+                    onError: () => {
+                        setError("Pembayaran ditolak atau gagal.");
+                        onBooked();
+                    },
+                    onClose: () => {
+                        onBooked();
+                    },
+                });
+            } else {
+                // Mode Sandbox Simulator untuk Portofolio
+                setPendingOrder(res);
+                setMessage(`Pemesanan berhasil dibuat (Order ID: ${res.order_id}). Silakan selesaikan pembayaran.`);
+                onBooked();
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : "Terjadi kesalahan saat memproses booking");
         } finally {
@@ -332,6 +388,26 @@ export default function BookingForm({
                     </div>
                 )}
 
+                {/* Modal / Card Simulasi Pembayaran Sandbox */}
+                {pendingOrder && (
+                    <div style={{ background: "#f0fdf4", border: "2px dashed #16a34a", padding: "1.25rem", borderRadius: "12px", marginBottom: "1.25rem", textAlign: "center" }}>
+                        <div style={{ fontSize: "1.05rem", fontWeight: 800, color: "#166534", marginBottom: "0.4rem" }}>
+                            💳 Pembayaran Midtrans Snap (Sandbox Simulation)
+                        </div>
+                        <p style={{ fontSize: "0.85rem", color: "#15803d", marginBottom: "0.85rem" }}>
+                            Order ID: <strong>{pendingOrder.order_id}</strong> • Total: <strong>Rp {pendingOrder.total_price.toLocaleString("id-ID")}</strong>
+                        </p>
+                        <button
+                            type="button"
+                            className="btn btn-primary"
+                            disabled={loading}
+                            onClick={() => triggerSimulatedPayment(pendingOrder.order_id)}
+                        >
+                            {loading ? "Memproses..." : "⚡ Bayar Sekarang (Simulasi Lunas)"}
+                        </button>
+                    </div>
+                )}
+
                 {/* Ringkasan Pesanan & Tombol Aksi */}
                 <div className="summary-box">
                     <div className="summary-details">
@@ -355,9 +431,9 @@ export default function BookingForm({
                         disabled={loading || hasCollision || isPastClosing}
                     >
                         {loading
-                            ? "Memproses Pemesanan..."
+                            ? "Memproses Pemesanan & Pembayaran..."
                             : isLoggedIn
-                            ? "Konfirmasi & Pesan Lapangan Sekarang"
+                            ? "Lanjut ke Pembayaran (Midtrans)"
                             : "Pesan Sekarang (Masuk untuk Menyelesaikan)"}
                     </button>
                     {!isLoggedIn && (

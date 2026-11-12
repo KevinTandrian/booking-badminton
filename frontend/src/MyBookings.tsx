@@ -7,6 +7,10 @@ type Booking = {
     start_time: string;
     end_time: string;
     status: string;
+    order_id?: string;
+    total_price?: number;
+    payment_status?: string;
+    snap_token?: string;
 };
 
 const fmtDate = (iso: string) =>
@@ -30,6 +34,7 @@ export default function MyBookings({
     const [items, setItems] = useState<Booking[]>([]);
     const [error, setError] = useState("");
     const [cancellingId, setCancellingId] = useState<number | null>(null);
+    const [payingId, setPayingId] = useState<number | null>(null);
 
     const load = useCallback(async () => {
         try {
@@ -54,6 +59,34 @@ export default function MyBookings({
             setError(e instanceof Error ? e.message : "Gagal membatalkan booking");
         } finally {
             setCancellingId(null);
+        }
+    }
+
+    async function payBooking(b: Booking) {
+        const snap = (window as unknown as { snap?: { pay: (token: string, callbacks: Record<string, () => void>) => void } }).snap;
+
+        // Jika ada token Snap resmi dan Midtrans aktif
+        if (b.snap_token && !b.snap_token.startsWith("simulated-") && snap) {
+            snap.pay(b.snap_token, {
+                onSuccess: () => onChange(),
+                onPending: () => onChange(),
+                onError: () => setError("Pembayaran gagal"),
+                onClose: () => onChange(),
+            });
+            return;
+        }
+
+        // Mode Simulasi Bayar Cepat
+        if (!b.order_id) return;
+        setPayingId(b.id);
+        setError("");
+        try {
+            await api(`/payments/simulate/${b.order_id}`, { method: "POST" });
+            onChange();
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Gagal memproses pembayaran");
+        } finally {
+            setPayingId(null);
         }
     }
 
@@ -89,39 +122,77 @@ export default function MyBookings({
                 </div>
             ) : (
                 <div>
-                    {items.map((b) => (
-                        <div key={b.id} className="booking-item">
-                            <div>
-                                <div className="booking-court">{b.court_name}</div>
-                                <div className="booking-time">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <polyline points="12 6 12 12 16 14"></polyline>
-                                    </svg>
-                                    <span>
-                                        {fmtDate(b.start_time)} • {fmtTime(b.start_time)} - {fmtTime(b.end_time)}
-                                    </span>
+                    {items.map((b) => {
+                        const isPendingPayment = b.payment_status === "pending" || b.status === "pending";
+                        const isPaid = b.payment_status === "paid" || b.status === "confirmed";
+                        const isCancelled = b.status === "cancelled";
+
+                        return (
+                            <div key={b.id} className="booking-item">
+                                <div>
+                                    <div className="booking-court">{b.court_name}</div>
+                                    <div className="booking-time">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <polyline points="12 6 12 12 16 14"></polyline>
+                                        </svg>
+                                        <span>
+                                            {fmtDate(b.start_time)} • {fmtTime(b.start_time)} - {fmtTime(b.end_time)}
+                                        </span>
+                                    </div>
+                                    {b.total_price ? (
+                                        <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: "0.25rem" }}>
+                                            Total: <strong style={{ color: "#0f172a" }}>Rp {b.total_price.toLocaleString("id-ID")}</strong>
+                                            {b.order_id && <span style={{ fontSize: "0.75rem", color: "#94a3b8" }}> • {b.order_id}</span>}
+                                        </div>
+                                    ) : null}
+                                </div>
+
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
+                                    {isPaid && !isCancelled && (
+                                        <span className="booking-status-badge confirmed">
+                                            ✓ LUNAS
+                                        </span>
+                                    )}
+
+                                    {isPendingPayment && !isCancelled && (
+                                        <span style={{ background: "#fef3c7", color: "#b45309", border: "1px solid #fde68a", padding: "0.25rem 0.65rem", borderRadius: "999px", fontSize: "0.75rem", fontWeight: 700 }}>
+                                            MENUNGGU BAYAR
+                                        </span>
+                                    )}
+
+                                    {isCancelled && (
+                                        <span className="booking-status-badge cancelled">
+                                            DIBATALKAN
+                                        </span>
+                                    )}
+
+                                    {isPendingPayment && !isCancelled && (
+                                        <button
+                                            type="button"
+                                            className="btn btn-primary"
+                                            style={{ padding: "0.35rem 0.85rem", fontSize: "0.8rem" }}
+                                            disabled={payingId === b.id}
+                                            onClick={() => payBooking(b)}
+                                        >
+                                            {payingId === b.id ? "Memproses..." : "⚡ Bayar Sekarang"}
+                                        </button>
+                                    )}
+
+                                    {!isCancelled && (
+                                        <button
+                                            type="button"
+                                            className="btn btn-danger-ghost"
+                                            disabled={cancellingId === b.id}
+                                            onClick={() => cancel(b.id)}
+                                        >
+                                            {cancellingId === b.id ? "Membatalkan..." : "Batalkan"}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
-
-                            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                                <span className={`booking-status-badge ${b.status}`}>
-                                    {b.status === "confirmed" ? "Terkonfirmasi" : "Dibatalkan"}
-                                </span>
-
-                                {b.status === "confirmed" && (
-                                    <button
-                                        type="button"
-                                        className="btn btn-danger-ghost"
-                                        disabled={cancellingId === b.id}
-                                        onClick={() => cancel(b.id)}
-                                    >
-                                        {cancellingId === b.id ? "Membatalkan..." : "Batalkan"}
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>

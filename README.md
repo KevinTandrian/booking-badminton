@@ -42,6 +42,8 @@ API tersedia di `http://localhost:3001`.
 | POST | /bookings | Login | Buat booking |
 | GET | /bookings/me | Login | Riwayat booking sendiri |
 | PATCH | /bookings/:id/cancel | Login | Batalkan booking (admin bisa semua) |
+| POST | /payments/webhook | Publik | Webhook notifikasi pembayaran dari Midtrans |
+| POST | /payments/simulate/:orderId | Publik | Simulasi konfirmasi pembayaran instan |
 
 ## Mencegah double booking
 
@@ -86,10 +88,17 @@ npm test
 
 Test memakai database terpisah (`booking_test`) dan berjalan otomatis di GitHub Actions setiap push.
 
+## Sistem Pembayaran (Midtrans Snap & Anti-Ghost Booking)
+
+* **Alur Pembayaran**: Saat pemesanan dibuat, pesanan berstatus `pending` dan menghasilkan `snap_token` Midtrans.
+* **Penguncian Slot Transaksi**: PostgreSQL Exclusion Constraint mengunci slot saat status `confirmed` maupun `pending`, sehingga pemain lain tidak bisa merebut slot saat pengguna sedang menyelesaikan pembayaran di popup Midtrans.
+* **Webhook & Verifikasi Signature**: Midtrans mengirimkan HTTP Webhook ke `/payments/webhook`. Backend memverifikasi digital signature SHA-512 (`SHA512(order_id + status_code + gross_amount + server_key)`). Jika transaksi sukses (`settlement`/`capture`), status booking otomatis berubah menjadi `confirmed` dan `paid`. Jika kedaluwarsa (`expire`/`cancel`), status menjadi `cancelled` sehingga slot langsung terbuka kembali untuk pemain lain.
+* **Mode Simulasi Portofolio**: Dilengkapi mode simulasi instan tanpa memerlukan kredensial sandbox agar reviewer dapat menguji alur pembayaran secara penuh.
+
 ## Rencana berikutnya
 
-- Pembayaran (Midtrans sandbox)
-- Notifikasi email
+- Notifikasi email konfirmasi & e-ticket
+- Integrasi WhatsApp Reminder H-2 jam
 
 ## Tampilan
 

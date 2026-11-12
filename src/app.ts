@@ -9,6 +9,7 @@ import { pool } from "./config/db";
 import authRoutes from "./routes/authRoutes";
 import courtRoutes from "./routes/courtRoutes";
 import bookingRoutes from "./routes/bookingRoutes";
+import paymentRoutes from "./routes/paymentRoutes";
 import { notFound, errorHandler } from "./middlewares/errorHandler";
 import { openapi } from "./openapi";
 
@@ -58,6 +59,7 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapi));
 app.use("/auth", authLimiter, authRoutes);
 app.use("/courts", courtRoutes);
 app.use("/bookings", bookingRoutes);
+app.use("/payments", paymentRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
