@@ -930,39 +930,52 @@ select:focus {
 }
 
 /* E-Ticket Styles */
+.ticket-modal-wrapper {
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 18px;
+  overflow: hidden !important;
+}
+
 .eticket-container {
   background: #ffffff;
   color: #0f172a;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .eticket-header {
   background: linear-gradient(135deg, #16a34a, #15803d);
-  padding: 1.25rem 1.5rem;
+  padding: 0.9rem 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
 .eticket-body {
-  padding: 1.5rem;
+  padding: 1.15rem 1.25rem;
 }
 
 .eticket-qr-box {
   background: #f8fafc;
   border: 1.5px dashed #cbd5e1;
-  border-radius: 14px;
-  padding: 1.25rem;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
   text-align: center;
 }
 
 .eticket-actions-bar {
   background: #f1f5f9;
   border-top: 1px solid #e2e8f0;
-  padding: 1rem 1.5rem;
+  padding: 0.85rem 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 /* Print CSS */
