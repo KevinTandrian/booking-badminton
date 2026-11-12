@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { api } from "./api";
+import ETicketModal from "./ETicketModal";
 
 type Booking = {
     id: number;
@@ -35,6 +36,7 @@ export default function MyBookings({
     const [error, setError] = useState("");
     const [cancellingId, setCancellingId] = useState<number | null>(null);
     const [payingId, setPayingId] = useState<number | null>(null);
+    const [selectedTicket, setSelectedTicket] = useState<Booking | null>(null);
 
     const load = useCallback(async () => {
         try {
@@ -150,9 +152,19 @@ export default function MyBookings({
 
                                 <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
                                     {isPaid && !isCancelled && (
-                                        <span className="booking-status-badge confirmed">
-                                            ✓ LUNAS
-                                        </span>
+                                        <>
+                                            <span className="booking-status-badge confirmed">
+                                                ✓ LUNAS
+                                            </span>
+                                            <button
+                                                type="button"
+                                                className="btn btn-secondary"
+                                                style={{ padding: "0.35rem 0.75rem", fontSize: "0.8rem", color: "#166534", borderColor: "#86efac", background: "#f0fdf4", fontWeight: 700 }}
+                                                onClick={() => setSelectedTicket(b)}
+                                            >
+                                                🎫 Lihat E-Ticket
+                                            </button>
+                                        </>
                                     )}
 
                                     {isPendingPayment && !isCancelled && (
@@ -194,6 +206,13 @@ export default function MyBookings({
                         );
                     })}
                 </div>
+            )}
+
+            {selectedTicket && (
+                <ETicketModal
+                    booking={selectedTicket}
+                    onClose={() => setSelectedTicket(null)}
+                />
             )}
         </div>
     );

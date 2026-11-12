@@ -95,9 +95,15 @@ Test memakai database terpisah (`booking_test`) dan berjalan otomatis di GitHub 
 * **Webhook & Verifikasi Signature**: Midtrans mengirimkan HTTP Webhook ke `/payments/webhook`. Backend memverifikasi digital signature SHA-512 (`SHA512(order_id + status_code + gross_amount + server_key)`). Jika transaksi sukses (`settlement`/`capture`), status booking otomatis berubah menjadi `confirmed` dan `paid`. Jika kedaluwarsa (`expire`/`cancel`), status menjadi `cancelled` sehingga slot langsung terbuka kembali untuk pemain lain.
 * **Mode Simulasi Portofolio**: Dilengkapi mode simulasi instan tanpa memerlukan kredensial sandbox agar reviewer dapat menguji alur pembayaran secara penuh.
 
+## E-Ticket Digital & QR Code Check-in
+
+* **E-Ticket Resmi**: Setiap pemesanan yang telah berstatus `LUNAS` dilengkapi dengan tombol **"Lihat E-Ticket"**.
+* **QR Code Dinamis**: Menghasilkan QR Code verifikasi unik berisi data `Order ID`, nama lapangan, dan waktu bermain untuk di-scan oleh kasir/petugas arena saat check-in.
+* **Cetak & Simpan PDF**: Dilengkapi stylesheet print khusus (`@media print`) sehingga pemain dapat langsung mencetak tiket atau menyimpannya sebagai file PDF rapi dengan satu klik.
+
 ## Rencana berikutnya
 
-- Notifikasi email konfirmasi & e-ticket
+- Notifikasi email otomatis via Resend / Nodemailer
 - Integrasi WhatsApp Reminder H-2 jam
 
 ## Tampilan
