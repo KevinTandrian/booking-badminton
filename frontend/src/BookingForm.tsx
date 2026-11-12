@@ -16,12 +16,8 @@ type BookingResponse = {
     is_simulated?: boolean;
 };
 
-// Sesi operasional lapangan: Pagi, Siang/Sore, Malam Prime-Time
-const SESSIONS = [
-    { title: "Sesi Pagi", timeRange: "07:00 - 12:00 WIB", icon: "☀️", hours: [7, 8, 9, 10, 11] },
-    { title: "Sesi Siang & Sore", timeRange: "12:00 - 17:00 WIB", icon: "⛅", hours: [12, 13, 14, 15, 16] },
-    { title: "Sesi Malam Prime-Time", timeRange: "17:00 - 22:00 WIB", icon: "🌙", hours: [17, 18, 19, 20, 21], isPrime: true },
-];
+// Jam operasional lapangan: 07:00 - 22:00 WIB (jam mulai main)
+const OPERATING_HOURS = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 
 function getDateString(offsetDays = 0) {
     const d = new Date();
@@ -612,7 +608,7 @@ export default function BookingForm({
                                 Langkah 3: Pilih Jam Mulai Main
                             </label>
                             <div style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                                Jam dikelompokkan berdasarkan sesi untuk kemudahan memilih
+                                Jam operasional 07:00 - 22:00 WIB (Pilih jam mulai bermain)
                             </div>
                         </div>
 
@@ -632,69 +628,49 @@ export default function BookingForm({
                         </div>
                     </div>
 
-                    {/* Render Sesi Waktu */}
-                    {SESSIONS.map((session, sIdx) => (
-                        <div key={sIdx} className="slot-session-section">
-                            <div className="slot-session-header">
-                                <div className="slot-session-title">
-                                    <span>{session.icon}</span>
-                                    <span>{session.title}</span>
-                                    <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: "normal" }}>
-                                        ({session.timeRange})
-                                    </span>
-                                </div>
-                                {session.isPrime && (
-                                    <span className="slot-session-badge prime">
-                                        🔥 Jam Favorit Komunitas
-                                    </span>
-                                )}
-                            </div>
-
-                            {loadingSlots ? (
-                                <div className="time-slot-grid">
-                                    {session.hours.map((h) => (
-                                        <div key={h} className="skeleton-shimmer skeleton-slot" />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="time-slot-grid">
-                                    {session.hours.map((h) => {
-                                        const booked = isHourBooked(h);
-                                        const selected = h === hour;
-                                        const inRange = isInSelectedRange(h);
-
-                                        let stateClass = "";
-                                        if (booked) {
-                                            stateClass = "booked";
-                                        } else if (selected) {
-                                            stateClass = "selected";
-                                        } else if (inRange) {
-                                            stateClass = "in-range";
-                                        }
-
-                                        return (
-                                            <button
-                                                key={h}
-                                                type="button"
-                                                disabled={booked}
-                                                className={`slot-button ${stateClass}`}
-                                                onClick={() => {
-                                                    setHour(h);
-                                                    showToast(`Mulai jam ${String(h).padStart(2, "0")}:00 dipilih (${duration} Jam)`);
-                                                }}
-                                                title={booked ? "Slot jam ini sudah dipesan" : `Pilih main jam ${String(h).padStart(2, "0")}:00`}
-                                            >
-                                                <span className="slot-time">{String(h).padStart(2, "0")}:00</span>
-                                                <span className="slot-status">
-                                                    {booked ? "Terisi" : selected ? "Mulai" : inRange ? "Dalam Durasi" : "Kosong"}
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
+                    {loadingSlots ? (
+                        <div className="time-slot-grid">
+                            {OPERATING_HOURS.map((h) => (
+                                <div key={h} className="skeleton-shimmer skeleton-slot" />
+                            ))}
                         </div>
-                    ))}
+                    ) : (
+                        <div className="time-slot-grid">
+                            {OPERATING_HOURS.map((h) => {
+                                const booked = isHourBooked(h);
+                                const selected = h === hour;
+                                const inRange = isInSelectedRange(h);
+
+                                let stateClass = "";
+                                if (booked) {
+                                    stateClass = "booked";
+                                } else if (selected) {
+                                    stateClass = "selected";
+                                } else if (inRange) {
+                                    stateClass = "in-range";
+                                }
+
+                                return (
+                                    <button
+                                        key={h}
+                                        type="button"
+                                        disabled={booked}
+                                        className={`slot-button ${stateClass}`}
+                                        onClick={() => {
+                                            setHour(h);
+                                            showToast(`Mulai jam ${String(h).padStart(2, "0")}:00 dipilih (${duration} Jam)`);
+                                        }}
+                                        title={booked ? "Slot jam ini sudah dipesan" : `Pilih main jam ${String(h).padStart(2, "0")}:00`}
+                                    >
+                                        <span className="slot-time">{String(h).padStart(2, "0")}:00</span>
+                                        <span className="slot-status">
+                                            {booked ? "Terisi" : selected ? "Mulai" : inRange ? "Dalam Durasi" : "Kosong"}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
 
                 {/* Notifikasi Error & Bentrok Waktu Pemilihan */}
