@@ -68,13 +68,13 @@ export default function ETicketModal({
                                 <div style={{ fontSize: "1.05rem", fontWeight: 800, color: "#fff", letterSpacing: "-0.01em", lineHeight: 1.2 }}>
                                     SmashPoint Arena
                                 </div>
-                                <div style={{ fontSize: "0.7rem", color: "#bbf7d0", textTransform: "uppercase", letterSpacing: "0.04em", fontWeight: 600 }}>
+                                <div style={{ fontSize: "0.7rem", color: "#bfdbfe", textTransform: "uppercase", letterSpacing: "0.04em", fontWeight: 600 }}>
                                     E-Ticket & Bukti Reservasi Resmi
                                 </div>
                             </div>
                         </div>
 
-                        <span style={{ background: "#ffffff", color: "#166534", padding: "0.2rem 0.6rem", borderRadius: 999, fontSize: "0.72rem", fontWeight: 800 }}>
+                        <span style={{ background: "#ffffff", color: "#1d4ed8", padding: "0.2rem 0.6rem", borderRadius: 999, fontSize: "0.72rem", fontWeight: 800 }}>
                             ✓ LUNAS
                         </span>
                     </div>
@@ -95,7 +95,7 @@ export default function ETicketModal({
                                 <div style={{ fontSize: "0.72rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>
                                     Metode Pembayaran
                                 </div>
-                                <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#16a34a" }}>
+                                <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#2563eb" }}>
                                     Midtrans QRIS / VA
                                 </div>
                             </div>
@@ -119,10 +119,10 @@ export default function ETicketModal({
                                 <div style={{ fontSize: "0.72rem", color: "#64748b", textTransform: "uppercase", fontWeight: 700 }}>
                                     Total Tarif
                                 </div>
-                                <div style={{ fontSize: "1.05rem", fontWeight: 800, color: "#16a34a" }}>
+                                <div style={{ fontSize: "1.05rem", fontWeight: 800, color: "#2563eb" }}>
                                     Rp {(booking.total_price ?? 0).toLocaleString("id-ID")}
                                 </div>
-                                <div style={{ fontSize: "0.72rem", color: "#166534", fontWeight: 600 }}>
+                                <div style={{ fontSize: "0.72rem", color: "#1e40af", fontWeight: 600 }}>
                                     Pembayaran Lunas
                                 </div>
                             </div>
@@ -134,7 +134,7 @@ export default function ETicketModal({
                                 <div style={{ fontSize: "0.95rem", fontWeight: 800, color: "#0f172a" }}>
                                     {fmtFullDate(booking.start_time)}
                                 </div>
-                                <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#16a34a", marginTop: "0.1rem" }}>
+                                <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#2563eb", marginTop: "0.1rem" }}>
                                     Pukul {fmtTime(booking.start_time)} - {fmtTime(booking.end_time)} WIB
                                 </div>
                             </div>

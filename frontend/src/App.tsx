@@ -104,42 +104,39 @@ export default function App() {
         </div>
       )}
 
-      {/* Hero Section Bersih, Modern & Ber-Gambar Landscape */}
-      <section className="hero-section">
-        <div className="hero-text-content">
-          <div className="hero-pill">
+      {/* Banner Utama Besar (Big Landscape Hero Banner) */}
+      <section className="hero-banner-main">
+        <img
+          src={heroImage}
+          alt="Arena Lapangan Bulutangkis SmashPoint"
+          className="hero-banner-bg"
+          loading="eager"
+        />
+        <div className="hero-banner-overlay"></div>
+        <div className="hero-banner-content">
+          <div className="hero-pill-glass">
             <span className="pulse-dot"></span>
             <span>Buka Setiap Hari: 07:00 - 22:00 WIB</span>
           </div>
-          <h1>Sewa Lapangan Bulutangkis Jadi Lebih Mudah</h1>
-          <p>
+
+          <h1 className="hero-banner-title">
+            Sewa Lapangan Bulutangkis Jadi Lebih Mudah
+          </h1>
+
+          <p className="hero-banner-desc">
             Cek ketersediaan jadwal secara langsung, pilih jam main favorit Anda, dan nikmati sistem pemesanan anti-bentrok secara real-time.
           </p>
 
-          <div className="hero-features">
-            <div className="hero-feature-item">
-              <span style={{ color: "var(--accent)" }}>✓</span> Bebas Double Booking
+          <div className="hero-banner-features">
+            <div className="hero-feature-glass">
+              <span className="feature-check">✓</span> Bebas Double Booking
             </div>
-            <div className="hero-feature-item">
-              <span style={{ color: "var(--accent)" }}>✓</span> Karpet Vinyl PBSI
+            <div className="hero-feature-glass">
+              <span className="feature-check">✓</span> Karpet Biru Standar BWF / PBSI
             </div>
-            <div className="hero-feature-item">
-              <span style={{ color: "var(--accent)" }}>✓</span> Parkir Luas & Kantin
+            <div className="hero-feature-glass">
+              <span className="feature-check">✓</span> Konfirmasi Instan & E-Ticket
             </div>
-          </div>
-        </div>
-
-        {/* Gambar Hero Landscape dari Foto Portrait */}
-        <div className="hero-image-wrapper">
-          <img
-            src={heroImage}
-            alt="Arena Lapangan Bulutangkis SmashPoint"
-            className="hero-image"
-            loading="eager"
-          />
-          <div className="hero-image-badge">
-            <span>🏸 Arena Resmi Standar BWF</span>
-            <span style={{ color: "#4ade80", fontSize: "0.75rem" }}>● Siap Pakai</span>
           </div>
         </div>
       </section>

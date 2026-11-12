@@ -390,11 +390,11 @@ export default function BookingForm({
 
                 {/* Modal / Card Simulasi Pembayaran Sandbox */}
                 {pendingOrder && (
-                    <div style={{ background: "#f0fdf4", border: "2px dashed #16a34a", padding: "1.25rem", borderRadius: "12px", marginBottom: "1.25rem", textAlign: "center" }}>
-                        <div style={{ fontSize: "1.05rem", fontWeight: 800, color: "#166534", marginBottom: "0.4rem" }}>
+                    <div style={{ background: "#eff6ff", border: "2px dashed #2563eb", padding: "1.25rem", borderRadius: "12px", marginBottom: "1.25rem", textAlign: "center" }}>
+                        <div style={{ fontSize: "1.05rem", fontWeight: 800, color: "#1e40af", marginBottom: "0.4rem" }}>
                             💳 Pembayaran Midtrans Snap (Sandbox Simulation)
                         </div>
-                        <p style={{ fontSize: "0.85rem", color: "#15803d", marginBottom: "0.85rem" }}>
+                        <p style={{ fontSize: "0.85rem", color: "#1d4ed8", marginBottom: "0.85rem" }}>
                             Order ID: <strong>{pendingOrder.order_id}</strong> • Total: <strong>Rp {pendingOrder.total_price.toLocaleString("id-ID")}</strong>
                         </p>
                         <button
